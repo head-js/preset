@@ -9,9 +9,12 @@ module.exports = {
       exclude: [
         '@babel/plugin-proposal-class-properties',
         '@babel/plugin-proposal-private-methods',
+        '@babel/plugin-proposal-logical-assignment-operators',
+        '@babel/plugin-proposal-numeric-separator',
         '@babel/plugin-proposal-unicode-property-regex',
         '@babel/plugin-transform-dotall-regex',
         '@babel/plugin-transform-unicode-regex',
+        '@babel/plugin-syntax-top-level-await',
       ],
     }]
   ],
@@ -34,6 +37,9 @@ module.exports = {
 
 1. [@babel/plugin-proposal-class-properties](https://babel.dev/docs/en/babel-plugin-proposal-class-properties) ES2022
     1. [@babel/plugin-proposal-private-methods](https://babel.dev/docs/en/babel-plugin-proposal-private-methods)
+2. [@babel/plugin-syntax-top-level-await](https://babel.dev/docs/en/babel-plugin-syntax-top-level-await) ES2022
+3. [@babel/plugin-proposal-logical-assignment-operators](https://babel.dev/docs/en/babel-plugin-proposal-logical-assignment-operators) ES2021
+4. [@babel/plugin-proposal-numeric-separator](https://babel.dev/docs/en/babel-plugin-proposal-numeric-separator) ES2021
 
 已通过 finished proposal，但不是良好的工程实践，所以不建议使用：
 
@@ -44,6 +50,17 @@ module.exports = {
 没有通过 finished proposal，不应该使用：
 
 1. [https://babel.dev/docs/en/babel-plugin-proposal-decorators](https://babel.dev/docs/en/babel-plugin-transform-runtime)
+
+-syntax 已经升级到 -transform，但这些依赖并没有改好：
+
+1. @babel/plugin-syntax-async-generator @7.8.3
+2. @babel/plugin-syntax-dynamic-import @7.8.3
+3. @babel/plugin-syntax-export-namespace-from @7.8.3
+4. @babel/plugin-syntax-json-strings @7.8.3
+5. @babel/plugin-syntax-nullish-coalescing-operator @7.8.3
+6. @babel/plugin-syntax-object-rest-spread @7.8.3
+7. @babel/plugin-syntax-optional-catch-binding @7.8.3
+8. @babel/plugin-syntax-optional-chaining @7.8.3
 
 参考
 --

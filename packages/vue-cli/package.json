@@ -1,6 +1,6 @@
 {
   "name": "@head/preset-vue-cli",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "@head/preset-vue-cli",
   "main": "index.js",
   "files": [],
@@ -10,6 +10,7 @@
   "author": "hbrls",
   "license": "MIT",
   "dependencies": {
+    "@babel/plugin-proposal-decorators": "7.10.5",
     "@vue/babel-helper-vue-jsx-merge-props": "1.2.1",
     "@vue/babel-plugin-transform-vue-jsx": "1.2.1",
     "@vue/babel-preset-app": "4.1.2",

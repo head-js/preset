@@ -67,3 +67,4 @@ module.exports = {
 
 1. https://babeljs.io/docs/en/configuration#print-effective-configs
 2. https://github.com/tc39/proposals/blob/main/finished-proposals.md
+3. https://babeljs.io/blog/2020/03/16/7.9.0#babelpreset-envs-bugfixes-option-11083httpsgithubcombabelbabelpull11083

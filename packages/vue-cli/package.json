@@ -1,15 +1,19 @@
 {
   "name": "@head/preset-vue-cli",
-  "version": "4.4.0",
+  "version": "4.4.1",
   "description": "@head/preset-vue-cli",
   "main": "index.js",
   "files": [],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "NODE_ENV=development vue-cli-service serve",
+    "build": "NODE_ENV=production vue-cli-service build",
+    "lint": "vue-cli-service lint --no-fix"
   },
   "author": "hbrls",
   "license": "MIT",
   "dependencies": {
+    "@babel/core": "7.12.17",
+    "@babel/preset-env": "7.12.17",
     "@babel/plugin-proposal-decorators": "7.10.5",
     "@vue/babel-helper-vue-jsx-merge-props": "1.2.1",
     "@vue/babel-plugin-transform-vue-jsx": "1.2.1",
@@ -29,7 +33,16 @@
     "@vue/cli-service": "4.4.6",
     "@vue/cli-shared-utils": "4.4.6",
     "@vue/component-compiler-utils": "3.2.2",
+    "@vue/eslint-config-airbnb": "5.0.2",
+    "babel-eslint": "10.1.0",
+    "core-js": "3.18.3",
+    "core-js-compat": "3.18.3",
+    "css-loader": "3.6.0",
+    "eslint": "5.16.0",
+    "eslint-config-airbnb": "18.2.0",
+    "eslint-plugin-vue": "5.2.3",
     "vue-loader": "15.9.8",
-    "vue-template-compiler": "2.6.14"
+    "vue-template-compiler": "2.6.14",
+    "webpack": "4.44.2"
   }
 }

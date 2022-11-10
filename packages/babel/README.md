@@ -92,3 +92,4 @@ browserslist
 3. https://babeljs.io/blog/2020/03/16/7.9.0#babelpreset-envs-bugfixes-option-11083httpsgithubcombabelbabelpull11083
 4. [认识 browserslist](https://segmentfault.com/a/1190000042212344)
 5. [Autoprefixer 配置详解](https://segmentfault.com/a/1190000023960072)
+6. [前端版本兼容问题的探索](https://supercodepower.com/fontend-target)

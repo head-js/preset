@@ -13,6 +13,10 @@ vue@2.6.14 ~2021-06-07
 
 如果不锁 css-loader，那么它会被升级到 ^6 导致和 webpack@4 冲突。
 
+实际使用的是 [html-webpack-plugin@3](https://github.com/jantimon/html-webpack-plugin/tree/v3.2.0)。
+
+实际使用的是 webpack-dev-server@3.11.3，典型需要注意的区别是 [beforeSetupMiddleware](https://github.com/webpack/webpack-dev-server/blob/master/migration-v4.md)。
+
 @vue/babel-preset-app 引入了 @babel/plugin-proposal-decorators，但它并没有通过 finished proposal，不建议使用。
 
 参考

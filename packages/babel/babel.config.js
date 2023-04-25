@@ -1,7 +1,7 @@
 module.exports = {
   presets: [
     ['@babel/preset-env', {
-      debug: true,
+      // debug: true,
       useBuiltIns: 'usage',
       corejs: '3',
       exclude: [

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="/rsrc/img/favicon.ico">
+    <title>@head/preset-vue-cli</title>
+    <% htmlWebpackPlugin.options.headScripts.forEach(function (script) { %>
+      <%= script %>
+    <% }); %>
+    <style>
+      body { margin: 0 }
+      .flex-row { flex-direction: row; }
+      .flex { display: flex; }
+      .flex-initial { flex: 0 1 auto; }
+      .flex-1 { flex: 1 1 0%; }
+      .w-2 { width: 0.5rem; }
+      .pt-4 { padding-top: 1rem; }
+      .Menu { width: 100px; }
+    </style>
+  </head>
+  <body>
+    <div class="flex flex-row">
+      <div class="Menu flex-initial">__MENU__</div>
+      <div class="flex-initial w-2"></div>
+      <div id="root" class="App flex-1 pt-4" data-pathname="/"></div>
+    </div>
+  </body>
+</html>

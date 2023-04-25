@@ -4,7 +4,14 @@ module.exports = {
     port: 3001,
   },
 
-  chainWebpack: config => {
+  chainWebpack: (config) => {
+    config.plugin('html-umi').tap((args) => {
+      const options = args[0];
+      options.headScripts = [
+        [ '<script id="head-js">', '</script>' ].join('\n'),
+      ];
+      return args;
+    });
   },
 
   lintOnSave: false,

@@ -103,6 +103,9 @@ dist
 # TernJS port file
 .tern-port
 
+.umi/
+.umi-production/
+
 package-lock.json
 .dist/
 .head-cli/

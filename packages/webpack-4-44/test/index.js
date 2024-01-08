@@ -25,8 +25,11 @@ async function ready() {
   // const AsyncCompA2 = await import(/* webpackChunkName: "async-component-a1" */'./async-component-a2');
   // AsyncCompA2.default();
 
-  // const AsyncCompC = await import(/* webpackChunkName: "async-component-c" */'./async-component-c');
-  // AsyncCompC.default();
+  const AsyncCompC1 = await import(/* webpackChunkName: "async-component-c1" */'./async-component-c1');
+  AsyncCompC1.default();
+
+  const AsyncCompC2 = await import(/* webpackChunkName: "async-component-c2" */'./async-component-c2');
+  AsyncCompC2.default();
 
   // const AsyncCompD = await import(/* webpackChunkName: "async-component-d" */'./async-component-d');
   // AsyncCompD.default();

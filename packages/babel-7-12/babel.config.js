@@ -1,4 +1,7 @@
 module.exports = {
+  plugins: [
+    ['@babel/plugin-syntax-class-properties'],
+  ],
   presets: [
     ['@babel/preset-env', {
       // debug: true,

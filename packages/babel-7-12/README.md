@@ -66,25 +66,21 @@ browserslist
     2. [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes#browser_compatibility) 认为 `chrome 48` 已经实现该特性，但我们应该以 `core-js-compat` 的数据为准
     3. 由于 FireFox 很长一段版本实现有问题，导致 core-js-compat 认为 `firefox 102` 才开始真正支持该特性，所以大部分的配置方式都会导致引入
     4. 由于 IE 始终没有实现，所以需要兼容 IE 的配置方式都会导致引入
-6. 我们考虑选择 `chrome 52` 作为这个里程碑标记，即经过兼容性处理后的代码应该能在 `chrome 52` 上正常运行；体现在本例中即 **应该** 引入。
-    1. chrome 52 发布于 [2016-07-20](https://en.wikipedia.org/wiki/Google_Chrome_version_history)
-    2. 据此选择了 `firefox 48` [2016-08-02](https://en.wikipedia.org/wiki/Firefox_version_history)
-    3. 据此选择了 `edge 38` [2016-08-02](https://en.wikipedia.org/wiki/Microsoft_Edge)
-    3. 据此选择了 `safari 10`, `ios_saf 10` [2016-09-20](https://en.wikipedia.org/wiki/Safari_(web_browser))
-7. Android 于 2014-10 发布了 `5.0 Lollipop`，此版本起用户可以从商店升级 WebView，即版本号和 Chrome 一致了。考虑到 >99% 用户机型占比，选择了 `android 5` 来作为一个里程碑。
-8. SamSung 12 发布于 2020-06-19，使用了 Chrome 79，所以暂时不处理它。
-9. 考虑一个里程碑 Android 4.4 开始支持 flex
-10. 考虑一个里程碑，iOS 11.3 开始支持 preload
+6. 由于综合的原因，我们选择了 `android 5` 和 `ios 11.3` 作为基准；因此我们认为需要原生支持 `ES2016`，`ES2017`
+    1. `ES2017` 的 `await` 关键字需要 `chrome 55`
+    2. `CSS Grid Layout` 需要 `chrome 58`
+    3. `Rest & Spread ...` 需要 `chrome 60`
+7. 考虑选择 `chrome 60` 作为这个里程碑标记，即上述能力无需特殊处理应该能正常运行，即 **不应该** 引入。
+    1. chrome 60 发布于 [2017-07-25](https://en.wikipedia.org/wiki/Google_Chrome_version_history)
+    2. 据此选择了 `firefox 56` [2017-09-28](https://en.wikipedia.org/wiki/Firefox_version_history)
+    3. 考虑到暂时没有对 `edge` 的兼容需求，且 `edge 79` 起与 `chrome` 共内核，[跳过](https://en.wikipedia.org/wiki/Microsoft_Edge#Edge_Legacy_release_history)
+    4. 据此选择了 `safari 11`, `ios_saf 11` [2017-09-19](https://en.wikipedia.org/wiki/Safari_(web_browser))
+8. SamSung 12 发布于 2020-06-19，使用了 Chrome 79，所以暂时不处理它
+9. 为简单起见，暂时不处理 Opera
 
-*2022-10-06，以上配置对用户的覆盖率是 [83.8%](https://browsersl.ist/#q=cover+99%25+in+CN%2Cnot+ie+%3E+0%2Cnot+chrome+%3C+52%2Cnot+firefox+%3C+46%2Cnot+edge+%3C+38%2Cnot+safari+%3C+10%2Cnot+ios_saf+%3C+10%2Cnot+android+%3C+5&region=CN)*
+*2024-03-21，以上配置对用户的覆盖率是 [75.7%](https://browsersl.ist/#q=cover+99%25+in+CN%0Anot+ie+%3E+0%0Anot+opera+%3E+0%0Anot+op_mob+%3E+0%0Anot+chrome+%3C+5260%0Anot+edge+%3C+79%0Anot+firefox+%3C+56%0Anot+safari+%3C+11%0Anot+ios_saf+%3C+11%0Anot+android+%3C+5%0A&region=CN)*
 
-*但 `cover 100% in CN` 的覆盖率也只有 [90.3%](https://browsersl.ist/#q=cover+99%25+in+CN&region=CN)，所以还需要根据实践调整*
-
-遗留问题：
-
-1. 以上里程碑标记保证的是 ES2016+ 的兼容性，即 `Arrays.prototype.includes` 及其之后的所有特性，并没有涉及 ES2015，即我们俗称的 ES6，例如 `Arrow Function`。
-2. [看上去](https://caniuse.com/es6) 对于 Android >=5 和 iOS >= 10 来说原生支持；并且[看上去](https://caniuse.com/?search=ES2016) ES2016 也是原生支持的；但从 ES2017 开始支持得就不太好了，所以以上将里程碑定在 ES2016 即 Array.prototype.includes 应该有足够的代表性。
-3. 观察构建制品会发现，Babel 对于 ES2015 是有一定处理的，但暂时没有找到文档支持具体处理或不处理了哪些，如果在实践中遇到问题，再考虑补测试用例。
+*但 `cover 100% in CN` 的覆盖率也只有 [94.5%](https://browsersl.ist/#q=cover+99%25+in+CN&region=CN)，所以还需要根据实践调整*
 
 参考
 --

@@ -1,6 +1,11 @@
 @head/preset-webpack
 ==
 
+5.74.0 [2022-07-25](https://github.com/webpack/webpack/releases?page=3)
+--
+
+1. umi@4.0.29 + webpack@5.74.0 开始支持 MF
+
 5.49.0 [2021-08-06](https://github.com/webpack/webpack/releases?page=7)
 --
 

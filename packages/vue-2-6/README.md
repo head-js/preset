@@ -1,4 +1,4 @@
-@head/preset-vue-cli
+@head/preset-vue
 ==
 
 vue@2.6.14 ~2021-06-07

@@ -1,7 +1,7 @@
 {
-  "name": "@head/preset-vue-cli",
-  "version": "4.4.1",
-  "description": "@head/preset-vue-cli",
+  "name": "@head/preset-vue",
+  "version": "2.6.0",
+  "description": "@head/preset-vue",
   "main": "index.js",
   "files": [],
   "scripts": {

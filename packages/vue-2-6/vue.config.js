@@ -5,7 +5,7 @@ module.exports = () => {
         entry: 'src/index.js',
         template: 'src/document.ejs',
         filename: 'index.html',
-        title: '@head/preset-vue-cli',
+        title: '@head/preset-vue',
       },
     },
   };

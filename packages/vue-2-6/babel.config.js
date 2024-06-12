@@ -14,6 +14,7 @@ module.exports = {
         '@babel/plugin-transform-unicode-regex',
         // '@babel/plugin-syntax-top-level-await',
       ],
-    }]
+    }],
+    '@vue/babel-preset-app',
   ],
 }

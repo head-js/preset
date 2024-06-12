@@ -43,7 +43,7 @@ module.exports = {
       // options.minify.maxLineLength = 120;
       // console.log(options);
       options.headScripts = [
-        [ '<script id="head-js">', '/* @head.js/head.js-init 0.1.1 */', '/* @head.js/head.js-profile 0.1.0 */', '</script>' ].join('\n'),
+        [ '<script id="head-js">', '/* @head.js/head.js-init 0.0.0 */', '/* @head.js/head.js-profile 0.0.0 */', '</script>' ].join('\n'),
         [ '<script id="umi-js">', '/* @head.js/umi.js-init 0.0.0 */', '</script>' ].join('\n'),
       ];
       return args;

@@ -1,22 +1,21 @@
 module.exports = {
   root: true,
   env: {
-    node: true,
+    browser: true,
   },
-  parser: 'vue-eslint-parser',
   parserOptions: {
     parser: '@babel/eslint-parser',
     sourceType: 'module',
   },
   extends: [
-    'plugin:eslint-plugin-vue/essential',
-    '@vue/eslint-config-airbnb',
-    'plugin:eslint-plugin-sonarjs/recommended',
+    'plugin:vue/essential',
+    '@vue/airbnb',
+    'plugin:sonarjs/recommended',
   ],
   rules: {
-    'import/extensions': 'off',
+    'import/extensions': [ 'error', { 'js': 'never', 'vue': 'never', 'json': 'always' } ],
     'no-console': 'off',
-    'no-multiple-empty-lines': 'off',
+    'no-multiple-empty-lines': [ 'error', { 'max': 2 } ],
     'no-unused-vars': 'off',
   },
 };

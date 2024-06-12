@@ -8,6 +8,20 @@ module.exports = () => {
         title: '@head/preset-vue',
       },
     },
+
+    css: {
+      loaderOptions: {
+        postcss: {
+          plugins: [
+            require('tailwind')({
+              purge: [
+                './src/**/*.{js,vue}',
+              ],
+            }),
+          ],
+        },
+      },
+    },
   };
 
   let config = {};

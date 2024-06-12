@@ -1,16 +1,15 @@
 <template>
   <div>
-    <Header :mono="true" />
+    404 Not Found
   </div>
 </template>
 
 <script>
-import Header from './components/Header';
-
 export default {
-  components: { Header },
+  components: {},
 };
 </script>
 
 <style lang="css" scoped>
+
 </style>

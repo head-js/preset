@@ -1,0 +1,20 @@
+{
+  "name": "@head/jscodeshift",
+  "version": "0.14.0",
+  "description": "",
+  "main": "index.js",
+  "author": "hbrls",
+  "license": "MIT",
+  "scripts": {
+    "codemod:react": "jscodeshift --extensions=js,jsx --parser=babel --transform=.codemod/transform-react.js src/ReactComponent.jsx",
+    "codemod:vue": "jscodeshift --extensions=js,vue --parser=babel --transform=.codemod/transform-vue.js src/VueComponent.vue",
+    "summerize:react": "node .codemod/summarize-react.js"
+  },
+  "devDependencies": {
+    "ast-types": "0.15.2",
+    "jscodeshift": "0.14.0",
+    "recast": "0.21.5",
+    "vue-jscodeshift-adapter": "2.2.1",
+    "vue-template-compiler": "2.6.14"
+  }
+}

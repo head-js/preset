@@ -1,0 +1,27 @@
+{
+  "name": "@head/preset-codemirror",
+  "version": "6.5.1",
+  "description": "",
+  "main": "index.js",
+  "author": "hbrls",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "rollup --config --strictDeprecations"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "6.2.0",
+    "@codemirror/commands": "6.1.2",
+    "@codemirror/lang-javascript": "6.1.1",
+    "@codemirror/language": "6.2.1",
+    "@codemirror/state": "6.1.4",
+    "@codemirror/view": "6.5.1",
+    "codemirror": "6.0.1",
+    "lodash-es": "4.17.21"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "23.0.7",
+    "@rollup/plugin-node-resolve": "15.0.2",
+    "rollup": "3.12.1"
+  }
+}

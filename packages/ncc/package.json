@@ -1,0 +1,20 @@
+{
+  "name": "@head/ncc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ncc run src/index.js",
+    "build": "ncc build src/index.js -o dist"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ajv": "6.12.6",
+    "chalk": "2.4.2",
+    "vanilla.js": "0.2.11"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "0.36.1"
+  }
+}

@@ -1,17 +1,9 @@
 {
   "name": "@head/preset-webpack",
-  "version": "5.74.0",
+  "version": "5.88.0",
   "description": "@head/preset-webpack",
   "main": "index.js",
   "files": [],
-  "scripts": {
-    "test": "ANALYZE=1 webpack --config=webpack.config.js"
-  },
   "author": "hbrls",
-  "license": "MIT",
-  "dependencies": {
-    "webpack": "5.74.0",
-    "webpack-chain": "6.5.1",
-    "webpack-cli": "4.7.2"
-  }
+  "license": "MIT"
 }

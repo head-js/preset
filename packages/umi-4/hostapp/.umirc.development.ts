@@ -26,6 +26,7 @@ export default defineConfig({
   //   shared,
   // },
   mfsu: false,
+
   mf: {
     name: wmfName,
     shared,

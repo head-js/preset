@@ -1,5 +1,5 @@
 const path = require('path');
-const Config = require('webpack-chain');
+const Config = require('webpack-5-chain');
 const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;

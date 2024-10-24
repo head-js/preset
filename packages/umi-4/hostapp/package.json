@@ -8,17 +8,17 @@
     "setup": "max setup"
   },
   "dependencies": {
-    "@ant-design/icons": "4.8.0",
+    "@ant-design/icons": "4.8.1",
     "@ant-design/pro-components": "2.3.27",
-    "antd": "4.23.6",
-    "react": "18.1.0",
-    "react-dom": "18.1.0"
+    "antd": "4.24.8",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@types/node": "16.18.20",
     "@types/react": "18.0.38",
     "@types/react-dom": "18.0.11",
-    "@umijs/max": "4.0.34",
+    "@umijs/max": "4.0.42",
     "typescript": "4.8.4",
     "webpack": "5.74.0",
     "webpack-bundle-analyzer": "3.9.0",

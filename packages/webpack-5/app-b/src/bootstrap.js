@@ -1,27 +1,39 @@
-import CompB from './component-b';
+import CompA from 'app-a/component-a';
+import CompB from 'app-a/component-b';
+import CompC from 'app-a/component-c';
 import CompD from './component-d';
+import CompE from './component-e';
+import CompF from './component-f';
 
 
 console.log('app-b.bootstrap');
 
+CompA();
 
 CompB();
 
+CompC();
+
 CompD();
+
+CompE();
+
+CompF();
 
 
 async function ready() {
-  const CompA = await import('page-factory/component-a');
-  CompA.default();
+  // FIXME: Module Federation
+  // const CompA = await import('app-a/component-a');
+  // CompA.default();
 
-  const CompC = await import('page-factory/component-c');
-  CompC.default();
+  // const CompC = await import('app-a/component-c');
+  // CompC.default();
 
   const AsyncCompA = await import(/* webpackChunkName: "async-component-a" */ './async-component-a');
   AsyncCompA.default();
 
-  const AsyncCompF = await import(/* webpackChunkName: "async-component-f" */ './async-component-f');
-  AsyncCompF.default();
+  const AsyncCompB = await import(/* webpackChunkName: "async-component-b" */ './async-component-b');
+  AsyncCompB.default();
 }
 
 ready();

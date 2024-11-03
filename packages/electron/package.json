@@ -1,0 +1,20 @@
+{
+  "name": "@head/preset-electron",
+  "version": "18.0.0",
+  "description": "",
+  "main": "dist/main.js",
+  "author": "hbrls",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "6.4.2",
+    "electron": "18.3.15"
+  },
+  "dependencies": {
+    "koa": "2.13.4",
+    "koa-router": "11.0.2"
+  }
+}

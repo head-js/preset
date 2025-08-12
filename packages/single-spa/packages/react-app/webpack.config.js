@@ -13,9 +13,10 @@ config.entry('umi')
   .end();
 
 config.output
-  .path(path.resolve('./.dist'))
-  .filename('[name].js')
-  .publicPath('/dist/')
+  .path(path.resolve('./.dist/react-app/rsrc/dist'))
+  .filename('[name]-[chunkhash:5].js')
+  .chunkFilename('[name]-[chunkhash:5].js')
+  .publicPath('/react-app/rsrs/dist/')
   .libraryTarget('system');
 
 config.resolve.extensions
@@ -23,6 +24,13 @@ config.resolve.extensions
   .add('.jsx')
   .add('.json')
   .add('.tsx');
+
+// config.externals([
+//   'react',
+//   'react-dom',
+//   'react-router',
+//   'react-router-dom',
+// ]);
 
 
 config.module

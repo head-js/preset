@@ -5,7 +5,6 @@ module.exports = () => {
         entry: 'src/index.js',
         template: 'src/document.ejs',
         filename: 'index.html',
-        title: '@head/preset-single-spa-app',
       },
     },
 
@@ -30,4 +29,4 @@ module.exports = () => {
   }
 
   return { ...commonConfig, ...config };
-};
+}

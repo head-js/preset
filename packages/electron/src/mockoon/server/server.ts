@@ -1,0 +1,2495 @@
+// import {
+//   BINARY_BODY,
+//   BodyTypes,
+//   CORSHeaders,
+//   Callback,
+//   Environment,
+//   FileExtensionsWithTemplating,
+//   GetContentType,
+//   GetRouteResponseContentType,
+//   Header,
+//   IsValidURL,
+//   MimeTypesWithTemplating,
+//   ParsedJSONBodyMimeTypes,
+//   ParsedXMLBodyMimeTypes,
+//   ProcessedDatabucket,
+//   Route,
+//   RouteResponse,
+//   RouteType,
+//   ServerErrorCodes,
+//   ServerEvents,
+//   ServerOptions,
+//   StreamingMode,
+//   Transaction,
+//   crudRoutesBuilder,
+//   dedupSlashes,
+//   defaultEnvironmentVariablesPrefix,
+//   defaultMaxTransactionLogs,
+//   generateUUID,
+//   getLatency,
+//   routesFromFolder,
+//   stringIncludesArrayItems
+// } from '@mockoon/commons';
+import { Environment } from '../models/environment.model';
+import { ServerEvents } from '../models/events.model';
+// import appendField from 'append-field';
+// import busboy from 'busboy';
+// import cookieParser from 'cookie-parser';
+import { EventEmitter } from 'events';
+import Koa from 'koa';
+// import { createReadStream, readFile, readFileSync, statSync } from 'fs';
+import { createServer as httpCreateServer, Server as httpServer } from 'http';
+import { createRoutes } from './routes';
+// import { createProxyMiddleware } from 'http-proxy-middleware';
+import {
+  createServer as httpsCreateServer,
+  Server as httpsServer
+} from 'https';
+import killable from 'killable';
+// import { AddressInfo, isIPv6 } from 'node:net';
+// import { basename, extname, isAbsolute, resolve } from 'path';
+// import { match } from 'path-to-regexp';
+// import { parse as qsParse } from 'qs';
+// import rangeParser from 'range-parser';
+// import { Readable } from 'stream';
+// import { SecureContextOptions } from 'tls';
+import TypedEmitter from 'typed-emitter';
+// import { parse as parseUrl } from 'url';
+// import { format } from 'util';
+// import { WebSocket, WebSocketServer } from 'ws';
+// import { xml2js } from 'xml-js';
+// import { ServerMessages } from '../../constants/server-messages.constants';
+// import { DefaultTLSOptions } from '../../constants/ssl.constants';
+// import { SetFakerLocale, SetFakerSeed } from '../faker';
+// import { ServerRequest, fromExpressRequest, fromWsRequest } from '../requests';
+// import { ResponseRulesInterpreter } from '../response-rules-interpreter';
+// import { TemplateParser } from '../template-parser';
+// import { requestHelperNames } from '../templating-helpers/request-helpers';
+// import {
+//   CreateCallbackInvocation,
+//   CreateInFlightRequest,
+//   CreateTransaction,
+//   isBodySupportingMethod,
+//   isValidStatusCode,
+//   mimeTypeLookup,
+//   preparePath,
+//   resolvePathFromEnvironment
+// } from '../utils';
+// import { createAdminEndpoint } from './admin-api';
+// import { databucketActions } from './crud';
+// import {
+//   BroadcastContext,
+//   DelegatedBroadcastHandler,
+//   getSafeStreamingInterval,
+//   isWebSocketOpen,
+//   messageToString,
+//   serveFileContentInWs
+// } from './ws';
+
+/**
+ * Create a server instance from an Environment object.
+ *
+ * Extends an EventEmitter.
+ *
+ * ⚠️ The function listenServerEvents must be used to listen to server events
+ * and avoid the EventEmitter to throw errors due to the lack of listeners.
+ *
+ * Example:
+ *
+ * ```
+ * const server = new MockoonServer(environment);
+ * const logger = createLoggerInstance();
+ * listenServerEvents(server, environment, logger, false);
+ *
+ * // or ate least listen to the error event
+ * server.on('error', (errorCode, originalError) => {});
+ * ```
+ */
+export class MockoonServer extends (EventEmitter as new () => TypedEmitter<ServerEvents>) {
+  private serverInstance!: httpServer | httpsServer;
+//   private webSocketServers: { instance: WebSocketServer; path: string }[] = [];
+//   private tlsOptions: SecureContextOptions = {};
+//   private processedDatabuckets: ProcessedDatabucket[] = [];
+//   // store the request number for each route
+//   private requestNumbers: Record<string, number> = {};
+//   // templating global variables
+//   private globalVariables: Record<string, any> = {};
+//   private options: ServerOptions = {
+//     environmentDirectory: '.',
+//     disabledRoutes: [],
+//     envVarsPrefix: defaultEnvironmentVariablesPrefix,
+//     enableAdminApi: true,
+//     disableTls: false,
+//     maxTransactionLogs: defaultMaxTransactionLogs,
+//     enableRandomLatency: false,
+//     maxFileUploads: 10,
+//     maxFileSize: 10 * 1024 * 1024 // 10MB
+//   };
+//   private transactionLogs: Transaction[] = [];
+
+  constructor(
+    private environment: Environment
+    // options: Partial<ServerOptions> = {}
+  ) {
+    super();
+    console.log('MockoonServer constructor');
+
+    // this.options = {
+    //   ...this.options,
+    //   ...options,
+    //   envVarsPrefix: options.envVarsPrefix ?? defaultEnvironmentVariablesPrefix
+    // };
+  }
+
+  /**
+   * Start a server
+   */
+  public start(): void {
+    const requestListener = this.createRequestListener();
+
+    // const webSocketRoutes = routesFromFolder(
+    //   this.environment.rootChildren,
+    //   this.environment.folders,
+    //   this.environment.routes,
+    //   this.options.disabledRoutes,
+    //   [RouteType.WS]
+    // );
+
+    // // create https or http server instance
+    // if (this.environment.tlsOptions.enabled && !this.options.disableTls) {
+    //   try {
+    //     this.tlsOptions = this.buildTLSOptions(this.environment);
+
+    //     this.serverInstance = httpsCreateServer(this.tlsOptions);
+    //   } catch (error: any) {
+    //     if (error.code === 'ENOENT') {
+    //       this.emit('error', ServerErrorCodes.CERT_FILE_NOT_FOUND, error);
+    //     } else {
+    //       this.emit('error', ServerErrorCodes.UNKNOWN_SERVER_ERROR, error);
+    //     }
+    //   }
+    // } else {
+      this.serverInstance = httpCreateServer(requestListener.callback());
+    // }
+
+    // make serverInstance killable
+    this.serverInstance = killable(this.serverInstance);
+
+    // // set timeout long enough to allow long latencies
+    // this.serverInstance.setTimeout(3_600_000);
+
+    // // handle server errors
+    // this.serverInstance.on('error', (error: NodeJS.ErrnoException) => {
+    //   let errorCode: ServerErrorCodes;
+
+    //   switch (error.code) {
+    //     case 'EADDRINUSE':
+    //       errorCode = ServerErrorCodes.PORT_ALREADY_USED;
+    //       break;
+    //     case 'EACCES':
+    //       errorCode = ServerErrorCodes.PORT_INVALID;
+    //       break;
+    //     case 'EADDRNOTAVAIL':
+    //       errorCode = ServerErrorCodes.HOSTNAME_UNAVAILABLE;
+    //       break;
+    //     case 'ENOTFOUND':
+    //       errorCode = ServerErrorCodes.HOSTNAME_UNKNOWN;
+    //       break;
+    //     default:
+    //       errorCode = ServerErrorCodes.UNKNOWN_SERVER_ERROR;
+    //   }
+    //   this.emit('error', errorCode, error);
+    // });
+
+    // if (webSocketRoutes.length > 0) {
+    //   this.createWSRoutes(webSocketRoutes);
+    // }
+
+    try {
+      this.serverInstance.listen(
+        { port: this.environment.port, host: this.environment.hostname },
+        () => {
+          this.emit('started');
+        }
+      );
+    } catch (error: any) {
+      if (error.code === 'ERR_SOCKET_BAD_PORT') {
+        this.emit('error' /*, ServerErrorCodes.PORT_INVALID, error */);
+      }
+    }
+  }
+
+//   /**
+//    * Kill the server
+//    */
+//   public stop(): void {
+//     if (this.webSocketServers.length > 0) {
+//       this.webSocketServers.forEach((webSocketServer) => {
+//         webSocketServer.instance.close();
+//       });
+//     }
+
+//     BroadcastContext.getInstance().closeAll();
+
+//     if (this.serverInstance) {
+//       this.serverInstance.kill(() => {
+//         this.emit('stopped');
+//       });
+//     }
+//   }
+
+  /**
+   * Create a request listener
+   */
+  public createRequestListener(): Koa {
+//     /**
+//      * Apply faker.js settings at each server start.
+//      * Locale must be set before seed.
+//      * We do this in the request listener to allow changing the locale and seed from the serverless package too, which is not using the start/stop methods.
+//      */
+//     SetFakerLocale(this.options.fakerOptions?.locale ?? 'en');
+//     SetFakerSeed(this.options.fakerOptions?.seed ?? undefined);
+
+    const app = new Koa();
+    // Koa 默认不添加 x-powered-by header
+    // Koa 默认不使用 etag（需要手动启用）
+
+    // CORS headers
+    app.use(async (ctx, next) => {
+      ctx.set('Access-Control-Allow-Origin', '*');
+      ctx.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      ctx.set('Access-Control-Allow-Headers', 'Content-Type');
+      await next();
+    });
+
+//     app.use(this.removeExpectHeader);
+
+//     // This middleware is required to parse the body for createAdminEndpoint requests
+//     app.use(this.parseBody);
+
+//     if (this.options.enableAdminApi) {
+//       // admin endpoint must be created before all other routes to avoid conflicts
+//       createAdminEndpoint(app, this, {
+//         statePurgeCallback: () => {
+//           // reset request numbers
+//           Object.keys(this.requestNumbers).forEach((routeUUID) => {
+//             this.requestNumbers[routeUUID] = 1;
+//           });
+//         },
+//         getGlobalVariables: (key: string) => this.globalVariables[key],
+//         setGlobalVariables: (key: string, value: any) => {
+//           this.globalVariables[key] = value;
+//         },
+//         purgeGlobalVariables: () => {
+//           this.globalVariables = {};
+//         },
+//         getDataBucket: this.getProcessedDatabucket.bind(this),
+//         getDataBuckets: () => this.processedDatabuckets,
+//         purgeDataBuckets: () => {
+//           this.processedDatabuckets = [];
+//           this.generateDatabuckets(this.environment);
+//         },
+//         getLogs: () => this.transactionLogs,
+//         purgeLogs: () => {
+//           this.transactionLogs = [];
+//         },
+//         envVarsPrefix: this.options.envVarsPrefix,
+//         updateEnvironment: (environment: Environment) => {
+//           this.environment = environment;
+//         }
+//       });
+//     }
+
+//     // process databuckets after admin endpoint creation to properly catch the databucket processed event
+//     this.generateDatabuckets(this.environment);
+
+//     app.use(this.emitEvent);
+//     app.use(this.delayResponse);
+//     app.use(this.deduplicateRequestSlashes);
+//     app.use(cookieParser());
+//     app.use(this.logRequest);
+//     app.use(this.setResponseHeaders);
+
+    this.setRoutes(app);
+//     this.setCors(app);
+//     this.enableProxy(app);
+//     app.use(this.errorHandler);
+
+    return app;
+  }
+
+//   /**
+//    * Return a processed databucket by name, id, or uuid
+//    *
+//    * @param identifier
+//    */
+//   public getProcessedDatabucket(identifier: string) {
+//     return this.processedDatabuckets.find(
+//       (processedDatabucket) =>
+//         processedDatabucket.name.toLowerCase() === identifier.toLowerCase() ||
+//         processedDatabucket.id === identifier.toLowerCase() ||
+//         processedDatabucket.uuid === identifier.toLowerCase()
+//     );
+//   }
+
+//   /**
+//    * Method that can be used to update the server's environment
+//    *
+//    * @param environment
+//    */
+//   public updateEnvironment(environment: Environment): void {
+//     this.environment = environment;
+//   }
+
+//   /**
+//    * ### Middleware ###
+//    * Remove the Expect: 100-continue header.
+//    * Express will always respond with 100 Continue if the header is present.
+//    *
+//    * However, http-proxy-middleware hang (onProxyReq is not triggered) if the header is present.
+//    * See https://github.com/http-party/node-http-proxy/issues/1219
+//    * A workaround would be to remove it and re-add it in the onProxyReq function,
+//    * but it's probably better to just remove it.
+//    *
+//    * @param request
+//    * @param response
+//    * @param next
+//    */
+//   private removeExpectHeader = (
+//     request: Request,
+//     response: Response,
+//     next: NextFunction
+//   ) => {
+//     const expectHeader = request.get('expect');
+
+//     if (expectHeader?.toLowerCase().includes('100-continue')) {
+//       delete request.headers.expect;
+//     }
+
+//     next();
+//   };
+
+//   /**
+//    * ### Middleware ###
+//    * Emit the SERVER_ENTERING_REQUEST event
+//    *
+//    * @param request
+//    * @param response
+//    * @param next
+//    */
+//   private emitEvent = (
+//     request: Request,
+//     response: Response,
+//     next: NextFunction
+//   ) => {
+//     this.emit('entering-request');
+//     next();
+//   };
+
+//   /**
+//    * ### Middleware ###
+//    * Add global latency to the mock server
+//    *
+//    * @param request
+//    * @param response
+//    * @param next
+//    */
+//   private delayResponse = (
+//     request: Request,
+//     response: Response,
+//     next: NextFunction
+//   ) => {
+//     setTimeout(
+//       next,
+//       getLatency(this.environment.latency, this.options.enableRandomLatency)
+//     );
+//   };
+
+//   /**
+//    * ### Middleware ###
+//    * Remove duplicate slashes in entering call paths
+//    *
+//    * @param request
+//    * @param response
+//    * @param next
+//    */
+//   private deduplicateRequestSlashes(
+//     request: Request,
+//     response: Response,
+//     next: NextFunction
+//   ) {
+//     request.url = dedupSlashes(request.url);
+
+//     next();
+//   }
+
+//   /**
+//    * Process the raw body and parse it if needed
+//    *
+//    * @param request
+//    * @param next
+//    * @param rawBody
+//    * @param requestContentType
+//    */
+//   private processRawBody(request, next, rawBody, requestContentType) {
+//     request.rawBody = Buffer.concat(rawBody);
+//     request.stringBody = request.rawBody.toString('utf8');
+
+//     try {
+//       if (requestContentType) {
+//         if (
+//           stringIncludesArrayItems(ParsedJSONBodyMimeTypes, requestContentType)
+//         ) {
+//           request.body = JSON.parse(request.stringBody);
+//           next();
+//         } else if (
+//           requestContentType.includes('application/x-www-form-urlencoded')
+//         ) {
+//           request.body = qsParse(request.stringBody, {
+//             depth: 10
+//           });
+//           next();
+//         } else if (requestContentType.includes('multipart/form-data')) {
+//           const busboyParse = busboy({
+//             headers: request.headers,
+//             limits: {
+//               fieldNameSize: 1000,
+//               files: this.options.maxFileUploads,
+//               fileSize: this.options.maxFileSize
+//             }
+//           });
+
+//           busboyParse.on('field', (name, value, info) => {
+//             if (request.body === undefined) {
+//               request.body = {};
+//             }
+
+//             if (name != null && !info.nameTruncated && !info.valueTruncated) {
+//               // add support for first level array fields (e.g. multiple fields with the same name without brackets)
+//               if (
+//                 !name.includes('[') &&
+//                 request.body[name] !== undefined &&
+//                 !Array.isArray(request.body[name])
+//               ) {
+//                 request.body[name] = [request.body[name]];
+//                 name = `${name}[]`;
+//               }
+//               appendField(request.body, name, value);
+//             }
+//           });
+
+//           busboyParse.on(
+//             'file',
+//             (
+//               name: string,
+//               stream: Readable,
+//               info: { filename: string; encoding: string; mimeType: string }
+//             ) => {
+//               if (request.body === undefined) {
+//                 request.body = {};
+//               }
+
+//               const file = {
+//                 filename: info.filename,
+//                 mimetype: info.mimeType,
+//                 size: 0
+//               };
+
+//               stream.on('data', (data) => {
+//                 file.size += data.length;
+//               });
+
+//               stream.on('close', () => {
+//                 // add support for first level array fields (e.g. multiple fields with the same name without brackets)
+//                 if (
+//                   !name.includes('[') &&
+//                   request.body[name] !== undefined &&
+//                   !Array.isArray(request.body[name])
+//                 ) {
+//                   request.body[name] = [request.body[name]];
+//                   name = `${name}[]`;
+//                 }
+
+//                 appendField(request.body, name, file);
+//               });
+//             }
+//           );
+
+//           busboyParse.on('error', (error: any) => {
+//             this.emit('error', ServerErrorCodes.REQUEST_BODY_PARSE, error);
+//             // we want to continue answering the call despite the parsing errors
+//             next();
+//           });
+
+//           busboyParse.on('finish', () => {
+//             next();
+//           });
+
+//           busboyParse.end(request.rawBody);
+//         } else if (
+//           stringIncludesArrayItems(ParsedXMLBodyMimeTypes, requestContentType)
+//         ) {
+//           request.body = xml2js(request.stringBody, {
+//             compact: true
+//           });
+//           next();
+//         } else {
+//           next();
+//         }
+//       } else {
+//         next();
+//       }
+//     } catch (error: any) {
+//       this.emit('error', ServerErrorCodes.REQUEST_BODY_PARSE, error);
+//       next();
+//     }
+//   }
+
+//   /**
+//    * ### Middleware ###
+//    * Parse entering request body
+//    *
+//    * @param request
+//    * @param response
+//    * @param next
+//    */
+
+//   private parseBody = (
+//     request: Request,
+//     response: Response,
+//     next: NextFunction
+//   ) => {
+//     // Parse body as a raw string and JSON/form if applicable
+//     const requestContentType: string | undefined =
+//       request.header('Content-Type');
+
+//     // body was already parsed (e.g. by firebase), 'data' event will not be emitted (⚠️ request.body will always be an empty object in Firebase Functions, we have to check rawBody too)
+//     if (!!request.body && request.rawBody) {
+//       this.processRawBody(request, next, [request.rawBody], requestContentType);
+//     } else {
+//       const rawBody: Buffer[] = [];
+
+//       request.on('data', (chunk) => {
+//         rawBody.push(Buffer.from(chunk, 'binary'));
+//       });
+
+//       request.on('end', () => {
+//         this.processRawBody(request, next, rawBody, requestContentType);
+//       });
+//     }
+//   };
+
+//   /**
+//    * ### Middleware ###
+//    * Emit an event when response emit the 'close' event
+//    *
+//    * @param request
+//    * @param response
+//    * @param next
+//    */
+//   private logRequest = (
+//     request: Request,
+//     response: Response,
+//     next: NextFunction
+//   ) => {
+//     response.on('close', () => {
+//       const transaction = CreateTransaction(request, response);
+
+//       this.emit('transaction-complete', transaction);
+
+//       this.transactionLogs.push(transaction);
+
+//       // keep only the last n transactions
+//       if (this.transactionLogs.length > this.options.maxTransactionLogs) {
+//         this.transactionLogs = this.transactionLogs.slice(
+//           this.options.maxTransactionLogs * -1
+//         );
+//       }
+//     });
+
+//     next();
+//   };
+
+//   /**
+//    * ### Middleware ###
+//    * Add environment headers & proxy headers to the response
+//    *
+//    * @param request
+//    * @param response
+//    * @param next
+//    */
+//   private setResponseHeaders = (
+//     request: Request,
+//     response: Response,
+//     next: NextFunction
+//   ) => {
+//     this.setHeaders(this.environment.headers, response, request);
+
+//     next();
+//   };
+
+  /**
+   * Generate an environment routes and attach to running server
+   *
+   * @param app - app on which attach routes
+   */
+  private setRoutes(app: Koa) {
+    const router = createRoutes({ server: this });
+
+    // 将路由注册到 Koa app
+    app.use(router.routes());
+    app.use(router.allowedMethods());
+
+    // if (
+    //   !this.environment.rootChildren ||
+    //   this.environment.rootChildren.length < 1
+    // ) {
+    //   return;
+    // }
+
+    // const routes = routesFromFolder(
+    //   this.environment.rootChildren,
+    //   this.environment.folders,
+    //   this.environment.routes,
+    //   this.options.disabledRoutes,
+    //   [RouteType.HTTP, RouteType.CRUD]
+    // );
+
+    // routes.forEach((declaredRoute: Route) => {
+    //   const routePath = preparePath(
+    //     this.environment.endpointPrefix,
+    //     declaredRoute.endpoint
+    //   );
+
+    //   try {
+    //     this.requestNumbers[declaredRoute.uuid] = 1;
+
+    //     if (declaredRoute.type === RouteType.CRUD) {
+    //       this.createCRUDRoute(server, declaredRoute, routePath);
+    //     } else if (declaredRoute.type === RouteType.HTTP) {
+    //       this.createRESTRoute(server, declaredRoute, routePath);
+    //     }
+    //   } catch (error: any) {
+    //     let errorCode = ServerErrorCodes.ROUTE_CREATION_ERROR;
+
+    //     // if invalid regex defined
+    //     if (error.message.indexOf('Invalid regular expression') > -1) {
+    //       errorCode = ServerErrorCodes.ROUTE_CREATION_ERROR_REGEX;
+    //     }
+
+    //     this.emit('error', errorCode, error, {
+    //       routePath: declaredRoute.endpoint,
+    //       routeUUID: declaredRoute.uuid
+    //     });
+    //   }
+    // });
+  }
+
+//   /**
+//    * Creates websocket routes from the given set of routes.
+//    *
+//    * @param wsRoutes
+//    */
+//   private createWSRoutes(wsRoutes: Route[]) {
+//     wsRoutes.forEach((wsRoute) => {
+//       const webSocketServer = new WebSocket.Server({
+//         noServer: true
+//       });
+
+//       this.webSocketServers.push({
+//         instance: webSocketServer,
+//         path: preparePath(this.environment.endpointPrefix, wsRoute.endpoint)
+//       });
+
+//       webSocketServer.on(
+//         'connection',
+//         this.createWebSocketConnectionHandler(webSocketServer, wsRoute)
+//       );
+//     });
+
+//     this.serverInstance.on('upgrade', (req, socket, head) => {
+//       const urlParsed = parseUrl(req.url || '', true);
+
+//       // check if the request is a websocket upgrade request
+//       if (req.headers.upgrade !== 'websocket') {
+//         socket.write(`HTTP/${req.httpVersion} 400 Bad Request\r\n`);
+//         socket.write('Content-Type: text/html\r\n');
+//         socket.write('Content-length: 72\r\n\r\n');
+//         socket.write(
+//           'Invalid WebSocket upgrade request: "Upgrade: websocket" header not found'
+//         );
+//         socket.destroy();
+
+//         return;
+//       }
+
+//       for (const wsServer of this.webSocketServers) {
+//         if (match(wsServer.path)(urlParsed.pathname || '')) {
+//           wsServer.instance.handleUpgrade(req, socket, head, (client) => {
+//             wsServer.instance.emit('connection', client, req);
+//           });
+
+//           return;
+//         }
+//       }
+
+//       // if no route is matched (loop didn't return), close the connection
+//       socket.write(`HTTP/${req.httpVersion} 404 Not Found\r\n`);
+//       socket.write('Content-Type: text/html\r\n');
+//       socket.write('Content-length: 38\r\n\r\n');
+//       socket.write('No WebSocket route found for this path');
+//       socket.destroy();
+//     });
+//   }
+
+//   /**
+//    * Creates a handler for a web socket connection received, if only any
+//    * of route is matched.
+//    *
+//    * @param webSocketServer
+//    * @param routeFor
+//    * @returns
+//    */
+//   private createWebSocketConnectionHandler(
+//     webSocketServer: WebSocketServer,
+//     routeFor: Route
+//   ) {
+//     return (socket: WebSocket, request: Request) => {
+//       const route = this.getRefreshedRoute(routeFor);
+
+//       if (!route) {
+//         this.emit('error', ServerErrorCodes.ROUTE_NO_LONGER_EXISTS, null, {
+//           routePath: routeFor.endpoint,
+//           routeUUID: routeFor.uuid
+//         });
+
+//         return;
+//       }
+
+//       const websocketId = generateUUID();
+//       const baseErrorMeta = {
+//         websocketId,
+//         routeUUID: route.uuid,
+//         routePath: route.endpoint
+//       };
+
+//       const inflightRequest = CreateInFlightRequest(
+//         websocketId,
+//         request,
+//         route
+//       );
+//       this.emit('ws-new-connection', inflightRequest);
+
+//       let responseNumber = 1;
+
+//       // handle error event
+//       socket.on('error', (err) => {
+//         this.emit(
+//           'error',
+//           ServerErrorCodes.WS_SERVING_ERROR,
+//           err,
+//           baseErrorMeta
+//         );
+//       });
+
+//       // handle common close method.
+//       // There would be more close methods registered, if the route is in streaming mode.
+//       socket.on('close', (code, reason) => {
+//         this.emit(
+//           'ws-closed',
+//           inflightRequest,
+//           code,
+//           reason ? reason.toString('utf8') : null
+//         );
+//       });
+
+//       const serverRequest = fromWsRequest(request, route);
+
+//       // This is not waiting until a message from client. But will push messages as a stream.
+//       if (route.streamingMode === StreamingMode.BROADCAST) {
+//         this.handleBroadcastResponse(
+//           webSocketServer,
+//           socket,
+//           route,
+//           serverRequest,
+//           baseErrorMeta
+//         );
+
+//         return;
+//       } else if (route.streamingMode === StreamingMode.UNICAST) {
+//         this.handleOneToOneStreamingResponses(
+//           socket,
+//           route,
+//           request,
+//           baseErrorMeta
+//         );
+
+//         return;
+//       }
+
+//       socket.on('message', (data, isBinary) => {
+//         if (isBinary) {
+//           this.emit(
+//             'error',
+//             ServerErrorCodes.WS_UNSUPPORTED_CONTENT,
+//             null,
+//             baseErrorMeta
+//           );
+
+//           return;
+//         }
+
+//         const routeInMessage = this.getRefreshedRoute(route);
+
+//         // the route is not found. Skip reacting.
+//         if (!routeInMessage) {
+//           this.emit(
+//             'error',
+//             ServerErrorCodes.WS_UNKNOWN_ROUTE,
+//             null,
+//             baseErrorMeta
+//           );
+
+//           return;
+//         }
+
+//         // get the incoming message as string...
+//         const messageData = messageToString(data);
+//         this.emit('ws-message-received', inflightRequest, messageData);
+
+//         const enabledRouteResponse = new ResponseRulesInterpreter(
+//           routeInMessage.responses,
+//           serverRequest,
+//           routeInMessage.responseMode,
+//           this.environment,
+//           this.processedDatabuckets,
+//           this.globalVariables,
+//           this.options.envVarsPrefix,
+//           this.options.publicBaseUrl
+//         ).chooseResponse(responseNumber, messageData);
+
+//         if (!enabledRouteResponse) {
+//           // Do nothing?
+//           return;
+//         }
+
+//         responseNumber += 1;
+
+//         setTimeout(() => {
+//           const content = this.deriveFinalResponseContentForWebSockets(
+//             socket,
+//             routeInMessage,
+//             enabledRouteResponse,
+//             request,
+//             messageData
+//           );
+
+//           if (content) {
+//             socket.send(content || '', (err) => {
+//               if (err) {
+//                 this.emit('error', ServerErrorCodes.WS_SERVING_ERROR, err, {
+//                   ...baseErrorMeta,
+//                   selectedResponseUUID: enabledRouteResponse.uuid,
+//                   selectedResponseLabel: enabledRouteResponse.label
+//                 });
+//               }
+//             });
+//           }
+//         }, enabledRouteResponse.latency);
+//       });
+//     };
+//   }
+
+//   /**
+//    * Derive final delivery content for websocket response.
+//    *
+//    * If no content is returned, that means the relevant content has been served,
+//    * or a failure has occurred. These scenarios can happen with file body type
+//    * and should be handled properly by the callers.
+//    *
+//    * @param socket
+//    * @param route
+//    * @param enabledRouteResponse
+//    * @param request
+//    * @param data
+//    */
+//   private deriveFinalResponseContentForWebSockets(
+//     socket: WebSocket,
+//     route: Route,
+//     enabledRouteResponse: RouteResponse,
+//     request?: Request,
+//     data?: string,
+//     connectedRequest?: ServerRequest
+//   ): string | undefined {
+//     let content: any = enabledRouteResponse.body;
+//     let finalRequest = connectedRequest;
+
+//     finalRequest ??= request ? fromWsRequest(request, route, data) : undefined;
+
+//     if (
+//       enabledRouteResponse.bodyType === BodyTypes.DATABUCKET &&
+//       enabledRouteResponse.databucketID
+//     ) {
+//       const servedDatabucket = this.processedDatabuckets.find(
+//         (processedDatabucket) =>
+//           processedDatabucket.id === enabledRouteResponse.databucketID
+//       );
+
+//       if (servedDatabucket) {
+//         content = servedDatabucket.value;
+
+//         if (
+//           Array.isArray(content) ||
+//           typeof content === 'object' ||
+//           typeof content === 'boolean' ||
+//           typeof content === 'number'
+//         ) {
+//           content = JSON.stringify(content);
+//         }
+//       }
+//     } else if (
+//       enabledRouteResponse.bodyType === BodyTypes.FILE &&
+//       enabledRouteResponse.filePath
+//     ) {
+//       const filePath = this.getSafeFilePath(
+//         enabledRouteResponse.filePath,
+//         finalRequest
+//       );
+
+//       serveFileContentInWs(
+//         socket,
+//         route,
+//         enabledRouteResponse,
+//         this,
+//         filePath,
+//         (contentData: string) =>
+//           TemplateParser({
+//             shouldOmitDataHelper: false,
+//             content: contentData,
+//             environment: this.environment,
+//             processedDatabuckets: this.processedDatabuckets,
+//             globalVariables: this.globalVariables,
+//             request: finalRequest,
+//             envVarsPrefix: this.options.envVarsPrefix,
+//             publicBaseUrl: this.options.publicBaseUrl
+//           })
+//       );
+
+//       return;
+//     }
+
+//     if (!enabledRouteResponse.disableTemplating) {
+//       content = TemplateParser({
+//         shouldOmitDataHelper: false,
+//         content: content || '',
+//         environment: this.environment,
+//         processedDatabuckets: this.processedDatabuckets,
+//         globalVariables: this.globalVariables,
+//         request: finalRequest,
+//         envVarsPrefix: this.options.envVarsPrefix,
+//         publicBaseUrl: this.options.publicBaseUrl
+//       });
+//     }
+
+//     return content;
+//   }
+
+//   private handleBroadcastResponse(
+//     webSocketServer: WebSocketServer,
+//     socket: WebSocket,
+//     route: Route,
+//     request: ServerRequest,
+//     baseErrorMeta: any
+//   ) {
+//     const broadcastContext = BroadcastContext.getInstance();
+//     const handler: DelegatedBroadcastHandler = (
+//       _: number,
+//       enabledRouteResponse: RouteResponse
+//     ) => {
+//       // todo: do we need to take params from initial connection at all?
+//       const content =
+//         this.deriveFinalResponseContentForWebSockets(
+//           socket,
+//           route,
+//           enabledRouteResponse,
+//           undefined,
+//           undefined,
+//           request
+//         ) || '';
+
+//       if (!content) {
+//         return;
+//       }
+
+//       const errorMetaData = {
+//         ...baseErrorMeta,
+//         selectedResponseUUID: enabledRouteResponse.uuid,
+//         selectedResponseLabel: enabledRouteResponse.label
+//       };
+
+//       webSocketServer.clients.forEach((client) => {
+//         if (isWebSocketOpen(client)) {
+//           this.serveWsResponse(client, content, errorMetaData);
+//         }
+//       });
+//     };
+
+//     broadcastContext.registerRoute(
+//       route,
+//       {
+//         environment: this.environment,
+//         processedDatabuckets: this.processedDatabuckets,
+//         globalVariables: this.globalVariables,
+//         envVarPrefix: this.options.envVarsPrefix,
+//         publicBaseUrl: this.options.publicBaseUrl
+//       },
+//       request,
+//       handler
+//     );
+//   }
+
+//   /**
+//    * Handle streaming websocket responses.
+//    *
+//    * @param socket
+//    * @param route
+//    * @param request
+//    * @param baseErrorMeta
+//    */
+//   private handleOneToOneStreamingResponses(
+//     socket: WebSocket,
+//     route: Route,
+//     request: Request,
+//     baseErrorMeta: any
+//   ) {
+//     let responseNumber = 1;
+
+//     const intervalRef = setInterval(() => {
+//       const enabledRouteResponse = new ResponseRulesInterpreter(
+//         route.responses,
+//         fromWsRequest(request, route),
+//         route.responseMode,
+//         this.environment,
+//         this.processedDatabuckets,
+//         this.globalVariables,
+//         this.options.envVarsPrefix,
+//         this.options.publicBaseUrl
+//       ).chooseResponse(responseNumber);
+
+//       if (!enabledRouteResponse) {
+//         return;
+//       }
+
+//       const content =
+//         this.deriveFinalResponseContentForWebSockets(
+//           socket,
+//           route,
+//           enabledRouteResponse,
+//           request
+//         ) || '';
+
+//       responseNumber += 1;
+
+//       if (!content) {
+//         return;
+//       }
+
+//       const errorMetaData = {
+//         ...baseErrorMeta,
+//         selectedResponseUUID: enabledRouteResponse.uuid,
+//         selectedResponseLabel: enabledRouteResponse.label
+//       };
+
+//       if (route.streamingMode === StreamingMode.UNICAST) {
+//         if (isWebSocketOpen(socket)) {
+//           this.serveWsResponse(socket, content, errorMetaData);
+//         }
+//       }
+//     }, getSafeStreamingInterval(route.streamingInterval));
+
+//     socket.on('close', () => {
+//       // close any interval data pushes
+//       if (intervalRef) {
+//         clearInterval(intervalRef);
+//       }
+//     });
+//   }
+
+//   /**
+//    * Sends given response data to the socket client.
+//    *
+//    * @param client
+//    * @param content
+//    * @param errorMetaData
+//    */
+//   private serveWsResponse(
+//     client: WebSocket,
+//     content: string,
+//     errorMetaData: any
+//   ) {
+//     client.send(content, (err) => {
+//       if (err) {
+//         this.emit(
+//           'error',
+//           ServerErrorCodes.WS_SERVING_ERROR,
+//           err,
+//           errorMetaData
+//         );
+//       }
+//     });
+//   }
+
+//   /**
+//    * Create a regular REST route (GET, POST, etc.)
+//    *
+//    * @param server
+//    * @param route
+//    * @param routePath
+//    */
+//   private createRESTRoute(
+//     server: Application,
+//     route: Route,
+//     routePath: string
+//   ) {
+//     server[route.method](routePath, this.createRouteHandler(route));
+//   }
+
+//   /**
+//    * Create a CRUD route: GET, POST, PUT, PATCH, DELETE
+//    *
+//    * @param server
+//    * @param route
+//    * @param routePath
+//    */
+//   private createCRUDRoute(
+//     server: Application,
+//     route: Route,
+//     routePath: string
+//   ) {
+//     const crudRoutes = crudRoutesBuilder(routePath);
+
+//     for (const crudRoute of crudRoutes) {
+//       server[crudRoute.method](
+//         crudRoute.path,
+//         this.createRouteHandler(route, crudRoute.id)
+//       );
+//     }
+//   }
+
+//   private createRouteHandler(
+//     route: Route,
+//     crudId?: ReturnType<typeof crudRoutesBuilder>[number]['id']
+//   ) {
+//     return (request: Request, response: Response, next: NextFunction) => {
+//       this.generateRequestDatabuckets(route, this.environment, request);
+
+//       // refresh environment data to get route changes that do not require a restart (headers, body, etc)
+//       const currentRoute = this.getRefreshedRoute(route);
+
+//       if (!currentRoute) {
+//         this.emit('error', ServerErrorCodes.ROUTE_NO_LONGER_EXISTS, null, {
+//           routePath: route.endpoint,
+//           routeUUID: route.uuid
+//         });
+
+//         this.sendError(response, ServerMessages.ROUTE_NO_LONGER_EXISTS, 404);
+
+//         return;
+//       }
+
+//       const enabledRouteResponse = new ResponseRulesInterpreter(
+//         currentRoute.responses,
+//         fromExpressRequest(request),
+//         currentRoute.responseMode,
+//         this.environment,
+//         this.processedDatabuckets,
+//         this.globalVariables,
+//         this.options.envVarsPrefix,
+//         this.options.publicBaseUrl
+//       ).chooseResponse(this.requestNumbers[route.uuid]);
+
+//       if (!enabledRouteResponse) {
+//         return next();
+//       }
+
+//       this.requestNumbers[route.uuid] += 1;
+
+//       // save route and response UUIDs for logs (only in desktop app)
+//       if (route.uuid && enabledRouteResponse.uuid) {
+//         response.routeUUID = route.uuid;
+//         response.routeResponseUUID = enabledRouteResponse.uuid;
+//       }
+
+//       const latency = getLatency(
+//         enabledRouteResponse.latency,
+//         this.options.enableRandomLatency
+//       );
+
+//       // add route latency if any
+//       setTimeout(() => {
+//         const contentType = GetRouteResponseContentType(
+//           this.environment,
+//           enabledRouteResponse
+//         );
+//         const routeContentType = GetContentType(enabledRouteResponse.headers);
+
+//         // set http code
+//         response.status(enabledRouteResponse.statusCode);
+
+//         this.setHeaders(enabledRouteResponse.headers, response, request);
+
+//         // send the file
+//         if (
+//           enabledRouteResponse.bodyType === BodyTypes.FILE &&
+//           enabledRouteResponse.filePath
+//         ) {
+//           this.sendFile(
+//             route,
+//             enabledRouteResponse,
+//             routeContentType,
+//             request,
+//             response
+//           );
+
+//           // serve inline body or databucket
+//         } else {
+//           let templateParse = true;
+
+//           if (contentType.includes('application/json')) {
+//             response.set('Content-Type', 'application/json');
+//           }
+
+//           // serve inline body as default
+//           let content: any = enabledRouteResponse.body;
+
+//           if (
+//             enabledRouteResponse.bodyType === BodyTypes.DATABUCKET &&
+//             enabledRouteResponse.databucketID
+//           ) {
+//             // databuckets are parsed at the server start or beginning of first request execution (no need to parse templating again)
+//             templateParse = false;
+
+//             const servedDatabucket = this.processedDatabuckets.find(
+//               (processedDatabucket) =>
+//                 processedDatabucket.id === enabledRouteResponse.databucketID
+//             );
+
+//             if (servedDatabucket) {
+//               content = servedDatabucket.value;
+
+//               if (route.type === RouteType.CRUD && crudId) {
+//                 content = databucketActions(
+//                   crudId,
+//                   servedDatabucket,
+//                   request,
+//                   response,
+//                   currentRoute.responses[0].crudKey
+//                 );
+//               }
+
+//               // if returned content is an array or object we need to stringify it for some values (array, object, booleans and numbers (bool and nb because expressjs cannot serve this as is))
+//               if (
+//                 Array.isArray(content) ||
+//                 typeof content === 'object' ||
+//                 typeof content === 'boolean' ||
+//                 typeof content === 'number'
+//               ) {
+//                 content = JSON.stringify(content);
+//               }
+//             }
+//           }
+
+//           this.serveBody(
+//             content || '',
+//             route,
+//             enabledRouteResponse,
+//             request,
+//             response,
+//             templateParse
+//           );
+//         }
+//       }, latency);
+//     };
+//   }
+
+//   private executeCallbacks(
+//     routeResponse: RouteResponse,
+//     request: Request,
+//     response: Response
+//   ) {
+//     // avoid infinite callback loops by tracking the chain of callback triggers
+//     const incomingCallbackChain =
+//       request.header('X-Mockoon-Callback-Chain') || '';
+//     const callbackChainArray = incomingCallbackChain
+//       ? incomingCallbackChain.split(',')
+//       : [];
+
+//     // check if current route response is already in the callback chain
+//     if (callbackChainArray.includes(routeResponse.uuid)) {
+//       this.emit(
+//         'error',
+//         ServerErrorCodes.CALLBACK_ERROR,
+//         new Error('Infinite callback loop detected'),
+//         {
+//           routeResponseUUID: routeResponse.uuid,
+//           callbackChain: incomingCallbackChain
+//         }
+//       );
+
+//       return;
+//     }
+
+//     if (routeResponse.callbacks && routeResponse.callbacks.length > 0) {
+//       const serverRequest = fromExpressRequest(request);
+
+//       for (const callbackInvocation of routeResponse.callbacks) {
+//         const callback = this.environment.callbacks.find(
+//           (ref) => ref.uuid === callbackInvocation.uuid
+//         );
+
+//         if (!callback) {
+//           continue;
+//         }
+
+//         try {
+//           let url = TemplateParser({
+//             shouldOmitDataHelper: false,
+//             content: callback.uri,
+//             environment: this.environment,
+//             processedDatabuckets: this.processedDatabuckets,
+//             globalVariables: this.globalVariables,
+//             request: serverRequest,
+//             response,
+//             envVarsPrefix: this.options.envVarsPrefix,
+//             publicBaseUrl: this.options.publicBaseUrl
+//           });
+
+//           // build the callback chain by appending current route response UUID
+//           const newCallbackChain = [
+//             ...callbackChainArray,
+//             routeResponse.uuid
+//           ].join(',');
+
+//           const extraHeaders = {
+//             'X-Mockoon-Callback-Chain': newCallbackChain
+//           };
+
+//           // detect if relative URL and add current host and protocol
+//           if (url.startsWith('/')) {
+//             const serverAddress = this.serverInstance.address() as AddressInfo;
+
+//             const hostname =
+//               this.options.publicBaseUrl ||
+//               `${this.environment.tlsOptions.enabled ? 'https' : 'http'}://${isIPv6(serverAddress.address) ? `[${serverAddress.address}]` : serverAddress.address}:${serverAddress.port}`;
+//             url = `${hostname}${this.environment.endpointPrefix ? '/' + this.environment.endpointPrefix : ''}${url}`;
+//           }
+
+//           const fileServingError = (error) => {
+//             this.emit('error', ServerErrorCodes.CALLBACK_FILE_ERROR, error, {
+//               callbackName: callback.name
+//             });
+//           };
+//           let content: string | FormData | undefined = callback.body;
+//           let templateParse = true;
+//           const sendingHeaders = {
+//             headers: {}
+//           };
+//           this.setHeaders(callback.headers || [], sendingHeaders, request);
+
+//           if (
+//             callback.bodyType === BodyTypes.DATABUCKET &&
+//             callback.databucketID
+//           ) {
+//             templateParse = false;
+
+//             const servedDatabucket = this.processedDatabuckets.find(
+//               (processedDatabucket) =>
+//                 processedDatabucket.id === callback.databucketID
+//             );
+
+//             if (servedDatabucket) {
+//               content = servedDatabucket.value;
+
+//               // if returned content is an array or object we need to stringify it for some values (array, object, booleans and numbers (bool and nb because expressjs cannot serve this as is))
+//               if (
+//                 Array.isArray(content) ||
+//                 typeof content === 'object' ||
+//                 typeof content === 'boolean' ||
+//                 typeof content === 'number'
+//               ) {
+//                 content = JSON.stringify(content);
+//               }
+//             }
+//           } else if (
+//             callback.bodyType === BodyTypes.FILE &&
+//             callback.filePath
+//           ) {
+//             try {
+//               const filePath = this.getSafeFilePath(
+//                 callback.filePath,
+//                 serverRequest
+//               );
+
+//               const fileMimeType = mimeTypeLookup(filePath) || '';
+//               const definedContentType = sendingHeaders.headers['Content-Type'];
+
+//               if (callback.sendFileAsBody) {
+//                 const data = readFileSync(filePath);
+//                 content = data.toString();
+
+//                 if (!MimeTypesWithTemplating.includes(fileMimeType)) {
+//                   templateParse = false;
+//                 }
+
+//                 // set content-type the detected mime type if any
+//                 if (!definedContentType && fileMimeType) {
+//                   sendingHeaders.headers['Content-Type'] = fileMimeType;
+//                 }
+//               } else {
+//                 templateParse = false;
+//                 const buffer = readFileSync(filePath);
+//                 content = new FormData();
+//                 content.append('file', new Blob([buffer]));
+//               }
+//             } catch (error: any) {
+//               fileServingError(error);
+
+//               continue;
+//             }
+//           }
+
+//           // apply templating if specified
+//           if (!routeResponse.disableTemplating && templateParse) {
+//             content = TemplateParser({
+//               shouldOmitDataHelper: false,
+//               content: (content as string) || '',
+//               environment: this.environment,
+//               processedDatabuckets: this.processedDatabuckets,
+//               globalVariables: this.globalVariables,
+//               request: serverRequest,
+//               response,
+//               envVarsPrefix: this.options.envVarsPrefix,
+//               publicBaseUrl: this.options.publicBaseUrl
+//             });
+//           }
+
+//           setTimeout(() => {
+//             fetch(url, {
+//               // uppercase even if most methods will work in lower case, but PATCH has to be uppercase or could be rejected by some servers (Node.js)
+//               method: callback.method.toUpperCase(),
+//               headers: {
+//                 ...sendingHeaders.headers,
+//                 ...extraHeaders
+//               },
+//               body: isBodySupportingMethod(callback.method)
+//                 ? content
+//                 : undefined
+//             })
+//               .then((res) => {
+//                 this.emitCallbackInvoked(
+//                   res,
+//                   callback,
+//                   url,
+//                   content instanceof FormData
+//                     ? `<buffer of ${callback.filePath}`
+//                     : content,
+//                   sendingHeaders.headers
+//                 );
+//               })
+//               .catch((e) =>
+//                 this.emit('error', ServerErrorCodes.CALLBACK_ERROR, e, {
+//                   callbackName: callback.name
+//                 })
+//               );
+//           }, callbackInvocation.latency);
+//         } catch (error: any) {
+//           this.emit('error', ServerErrorCodes.CALLBACK_ERROR, error, {
+//             callbackName: callback.name
+//           });
+//         }
+//       }
+//     }
+//   }
+
+//   /**
+//    * Parse the body templating and send it as the response body
+//    *
+//    * @param routeResponse
+//    * @param request
+//    * @param response
+//    */
+//   private serveBody(
+//     content: string,
+//     route: Route,
+//     routeResponse: RouteResponse,
+//     request: Request,
+//     response: Response,
+//     templateParse = true
+//   ) {
+//     try {
+//       if (!routeResponse.disableTemplating && templateParse) {
+//         content = TemplateParser({
+//           shouldOmitDataHelper: false,
+//           content: content || '',
+//           environment: this.environment,
+//           processedDatabuckets: this.processedDatabuckets,
+//           globalVariables: this.globalVariables,
+//           request: fromExpressRequest(request),
+//           response,
+//           envVarsPrefix: this.options.envVarsPrefix,
+//           publicBaseUrl: this.options.publicBaseUrl
+//         });
+//       }
+
+//       this.applyResponseLocals(response);
+
+//       response.body = content;
+
+//       // execute callbacks after generating the template, to be able to use the eventual templating variables in the callback
+//       this.executeCallbacks(routeResponse, request, response);
+
+//       response.send(content);
+//     } catch (error: any) {
+//       this.emit('error', ServerErrorCodes.ROUTE_SERVING_ERROR, error, {
+//         routePath: route.endpoint,
+//         routeUUID: route.uuid
+//       });
+
+//       this.sendError(
+//         response,
+//         format(ServerMessages.ROUTE_SERVING_ERROR, error.message)
+//       );
+//     }
+//   }
+
+//   /**
+//    * Send a file as response body.
+//    * Revert to sendBody if file is not found.
+//    *
+//    * @param routeResponse
+//    * @param routeContentType
+//    * @param request
+//    * @param response
+//    */
+//   private sendFile(
+//     route: Route,
+//     routeResponse: RouteResponse,
+//     routeContentType: string | null,
+//     request: Request,
+//     response: Response
+//   ) {
+//     const fileServingError = (error) => {
+//       this.emit('error', ServerErrorCodes.ROUTE_FILE_SERVING_ERROR, error, {
+//         routePath: route.endpoint,
+//         routeUUID: route.uuid
+//       });
+//       this.sendError(
+//         response,
+//         format(ServerMessages.ROUTE_FILE_SERVING_ERROR, error.message)
+//       );
+//     };
+
+//     const errorThrowOrFallback = (error) => {
+//       if (routeResponse.fallbackTo404) {
+//         response.status(404);
+//         const content = routeResponse.body ? routeResponse.body : '';
+//         this.serveBody(content, route, routeResponse, request, response);
+//       } else {
+//         fileServingError(error);
+//       }
+//     };
+
+//     const serverRequest = fromExpressRequest(request);
+//     try {
+//       const filePath = this.getSafeFilePath(
+//         routeResponse.filePath,
+//         serverRequest
+//       );
+
+//       const fileMimeType = mimeTypeLookup(filePath) || '';
+
+//       // set content-type the detected mime type if any
+//       if (!routeContentType && fileMimeType) {
+//         response.set('Content-Type', fileMimeType);
+//       }
+
+//       if (!routeResponse.sendFileAsBody) {
+//         response.set(
+//           'Content-Disposition',
+//           `attachment; filename="${encodeURIComponent(basename(filePath))}"`
+//         );
+//       }
+
+//       // parse templating for a limited list of mime types
+//       if (
+//         (MimeTypesWithTemplating.includes(fileMimeType) ||
+//           FileExtensionsWithTemplating.includes(extname(filePath))) &&
+//         !routeResponse.disableTemplating
+//       ) {
+//         readFile(filePath, (readError, data) => {
+//           if (readError) {
+//             errorThrowOrFallback(readError);
+
+//             return;
+//           }
+
+//           try {
+//             const fileContent = TemplateParser({
+//               shouldOmitDataHelper: false,
+//               content: data.toString(),
+//               environment: this.environment,
+//               processedDatabuckets: this.processedDatabuckets,
+//               globalVariables: this.globalVariables,
+//               request: serverRequest,
+//               response,
+//               envVarsPrefix: this.options.envVarsPrefix,
+//               publicBaseUrl: this.options.publicBaseUrl
+//             });
+
+//             this.applyResponseLocals(response);
+
+//             response.body = fileContent;
+
+//             // execute callbacks after generating the file content, to be able to use the eventual templating variables in the callback
+//             this.executeCallbacks(routeResponse, request, response);
+
+//             response.send(fileContent);
+//           } catch (error: any) {
+//             fileServingError(error);
+//           }
+//         });
+//       } else {
+//         try {
+//           const rangeHeader = request.headers.range;
+//           const { size } = statSync(filePath);
+//           response.body = BINARY_BODY;
+//           let stream = createReadStream(filePath);
+
+//           this.setHeaders(
+//             [
+//               {
+//                 key: 'Content-Length',
+//                 value: size.toString()
+//               }
+//             ],
+//             response,
+//             request
+//           );
+
+//           if (rangeHeader) {
+//             const parsedRange = rangeParser(size, rangeHeader);
+
+//             // unsatisfiable range
+//             if (parsedRange === -1) {
+//               this.sendError(response, 'Requested range not satisfiable', 416);
+
+//               return;
+//             } else if (parsedRange === -2) {
+//               // malformed header
+//               this.sendError(response, 'Malformed range header', 400);
+
+//               return;
+//             } else if (parsedRange) {
+//               const start = parsedRange[0].start;
+//               const end = parsedRange[0].end;
+//               const chunksize = end - start + 1;
+//               stream = createReadStream(filePath, { start, end });
+
+//               this.setHeaders(
+//                 [
+//                   {
+//                     key: 'Content-Range',
+//                     value: `bytes ${start}-${end}/${size}`
+//                   },
+//                   {
+//                     key: 'Accept-Ranges',
+//                     value: 'bytes'
+//                   },
+//                   {
+//                     key: 'Content-Length',
+//                     value: chunksize.toString()
+//                   },
+//                   {
+//                     key: 'Content-Type',
+//                     value: fileMimeType
+//                   }
+//                 ],
+//                 response,
+//                 request
+//               );
+
+//               response.status(206);
+//               stream = createReadStream(filePath, { start, end });
+//             }
+//           }
+
+//           this.executeCallbacks(routeResponse, request, response);
+
+//           stream.pipe(response);
+//         } catch (error: any) {
+//           errorThrowOrFallback(error);
+//         }
+//       }
+//     } catch (error: any) {
+//       this.emit('error', ServerErrorCodes.ROUTE_SERVING_ERROR, error, {
+//         routePath: route.endpoint,
+//         routeUUID: route.uuid
+//       });
+
+//       this.sendError(
+//         response,
+//         format(ServerMessages.ROUTE_SERVING_ERROR, error.message)
+//       );
+//     }
+//   }
+
+//   /**
+//    * Always answer with status 200 to CORS pre flight OPTIONS requests if option activated.
+//    * /!\ Must be called after the routes creation otherwise it will intercept all user defined OPTIONS routes.
+//    *
+//    * @param server - express instance
+//    */
+//   private setCors(server: Application) {
+//     if (this.environment.cors) {
+//       server.options('/*', (req, res) => {
+//         // override default CORS headers with environment's headers
+//         this.setHeaders(
+//           [...CORSHeaders, ...this.environment.headers],
+//           res,
+//           req
+//         );
+
+//         res.status(200).end();
+//       });
+//     }
+//   }
+
+//   /**
+//    * Add catch-all proxy if enabled.
+//    * Restream the body to the proxied API because it already has been
+//    * intercepted by the body parser.
+//    *
+//    * @param server - server on which to launch the proxy
+//    */
+//   private enableProxy(server: Application) {
+//     if (
+//       this.environment.proxyMode &&
+//       this.environment.proxyHost &&
+//       IsValidURL(this.environment.proxyHost)
+//     ) {
+//       this.emit('creating-proxy');
+
+//       server.use(
+//         createProxyMiddleware({
+//           cookieDomainRewrite: { '*': '' },
+//           target: this.environment.proxyHost,
+//           secure: false,
+//           changeOrigin: true,
+//           pathRewrite: (path) => {
+//             if (
+//               this.environment.proxyRemovePrefix === true &&
+//               this.environment.endpointPrefix.length > 0
+//             ) {
+//               const regExp = new RegExp(`^/${this.environment.endpointPrefix}`);
+
+//               return path.replace(regExp, '');
+//             }
+
+//             return path;
+//           },
+//           ssl: { ...this.tlsOptions, agent: false },
+//           on: {
+//             proxyReq: (proxyReq, request) => {
+//               request.proxied = true;
+
+//               this.setHeaders(
+//                 this.environment.proxyReqHeaders,
+//                 proxyReq,
+//                 request as Request
+//               );
+
+//               // re-stream the body (intercepted by body parser method)
+//               if (request.rawBody) {
+//                 proxyReq.write(request.rawBody);
+//               }
+//             },
+//             proxyRes: (proxyRes, request, response) => {
+//               const buffers: Buffer[] = [];
+//               proxyRes.on('data', (chunk) => {
+//                 buffers.push(chunk);
+//               });
+//               proxyRes.on('end', () => {
+//                 response.body = Buffer.concat(buffers);
+//               });
+
+//               this.setHeaders(
+//                 this.environment.proxyResHeaders,
+//                 proxyRes,
+//                 request as Request
+//               );
+//             },
+//             error: (error, request, response) => {
+//               this.emit('error', ServerErrorCodes.PROXY_ERROR, error);
+
+//               this.sendError(
+//                 response as Response,
+//                 `${format(
+//                   ServerMessages.PROXY_ERROR,
+//                   this.environment.proxyHost
+//                 )} ${request.url}: ${error}`,
+//                 504
+//               );
+//             }
+//           }
+//         })
+//       );
+//     }
+//   }
+
+//   /**
+//    * ### Middleware ###
+//    * Catch all error handler
+//    * http://expressjs.com/en/guide/error-handling.html#catching-errors
+//    *
+//    * @param server - server on which to log the response
+//    */
+//   private errorHandler = (
+//     error: any,
+//     request: Request,
+//     response: Response,
+//     _next: NextFunction
+//   ) => {
+//     this.sendError(response, error, 500);
+//   };
+
+//   /**
+//    * Set the provided headers on the target. Use different headers accessors
+//    * depending on the type of target:
+//    * express.Response/http.OutgoingMessage/http.IncomingMessage
+//    * Use the source in the template parsing of each header value.
+//    *
+//    * @param headers
+//    * @param target
+//    * @param request
+//    */
+//   private setHeaders(headers: Header[], target: any, request: Request) {
+//     headers.forEach((header: Header) => {
+//       try {
+//         const isSetCookie = header.key.toLowerCase() === 'set-cookie';
+//         let parsedHeaderValue = this.parseHeader(header, request);
+
+//         if (parsedHeaderValue === null) {
+//           return;
+//         }
+
+//         if (target.set) {
+//           // for express.Response
+//           if (isSetCookie) {
+//             target.append(header.key, parsedHeaderValue);
+//           } else {
+//             target.set(header.key, parsedHeaderValue);
+//           }
+//         } else if (target.setHeader) {
+//           // for proxy http.OutgoingMessage | ClientRequest
+//           target.setHeader(header.key, parsedHeaderValue);
+//         } else {
+//           // for http.IncomingMessage
+//           if (isSetCookie) {
+//             // Remove the secure flag
+//             parsedHeaderValue = parsedHeaderValue.replace(/; secure/gi, '');
+//             target.headers[header.key] = this.appendHeaderValue(
+//               target.headers[header.key],
+//               parsedHeaderValue
+//             );
+//           } else {
+//             target.headers[header.key] = parsedHeaderValue;
+//           }
+//         }
+//       } catch (_error) {}
+//     });
+//   }
+
+//   /**
+//    * If header already has a value, concatenate the values into an array
+//    *
+//    * @param currentValue
+//    * @param newValue
+//    * @returns
+//    */
+//   private appendHeaderValue(
+//     currentValue: string | string[],
+//     newValue: string
+//   ): string | string[] {
+//     let headerValue: string | string[] = newValue;
+
+//     if (currentValue) {
+//       headerValue = Array.isArray(currentValue)
+//         ? currentValue.concat(headerValue)
+//         : [currentValue, headerValue];
+//     }
+
+//     return headerValue;
+//   }
+
+//   /**
+//    * Verify a header validity and parse its content, if templating is used
+//    *
+//    * @param header
+//    * @param request
+//    * @returns
+//    */
+//   private parseHeader(header: Header, request: Request): string | null {
+//     let parsedHeaderValue: string | null = null;
+
+//     if (header.key && header.value) {
+//       try {
+//         parsedHeaderValue = TemplateParser({
+//           shouldOmitDataHelper: false,
+//           content: header.value,
+//           environment: this.environment,
+//           processedDatabuckets: this.processedDatabuckets,
+//           globalVariables: this.globalVariables,
+//           request: fromExpressRequest(request),
+//           envVarsPrefix: this.options.envVarsPrefix,
+//           publicBaseUrl: this.options.publicBaseUrl
+//         });
+//       } catch (error: any) {
+//         this.emit('error', ServerErrorCodes.HEADER_PARSING_ERROR, error, {
+//           headerKey: header.key,
+//           headerValue: header.value
+//         });
+
+//         parsedHeaderValue = ServerMessages.HEADER_PARSING_ERROR_LIGHT;
+//       }
+//     }
+
+//     return parsedHeaderValue;
+//   }
+
+//   /**
+//    * Send an error with text/plain content type, the provided message and status code.
+//    * Status is optional. No status will default to the one defined by the user, allowing for maximum customization.
+//    *
+//    * @param response
+//    * @param errorMessage
+//    * @param status
+//    */
+//   private sendError(
+//     response: Response,
+//     errorMessage: string | Error,
+//     status?: number
+//   ) {
+//     response.set('Content-Type', 'text/plain');
+//     response.body = errorMessage;
+
+//     if (errorMessage instanceof Error) {
+//       errorMessage = errorMessage.message;
+//     }
+
+//     if (status !== undefined) {
+//       response.status(status);
+//     }
+
+//     response.send(errorMessage);
+//   }
+
+//   /**
+//    * Emit callback invoked event.
+//    *
+//    * @param res
+//    * @param callback
+//    * @param url
+//    * @param requestBody
+//    * @param requestHeaders
+//    */
+//   private emitCallbackInvoked(
+//     res: globalThis.Response,
+//     callback: Callback,
+//     url: string,
+//     requestBody: string | null | undefined,
+//     requestHeaders: Record<string, any>
+//   ) {
+//     res.text().then((respText) => {
+//       const reqHeaders = Object.keys(requestHeaders).map(
+//         (k) => ({ key: k, value: requestHeaders[k] }) as Header
+//       );
+//       this.emit(
+//         'callback-invoked',
+//         CreateCallbackInvocation(
+//           callback,
+//           url,
+//           requestBody,
+//           reqHeaders,
+//           res,
+//           respText
+//         )
+//       );
+//     });
+//   }
+
+//   /**
+//    * Fetch the updated route as some parameters can be applied without a restart (latency, headers, etc)
+//    *
+//    * @param routeUUID
+//    */
+//   private getRefreshedRoute(currentRoute: Route): Route | undefined {
+//     return this.environment.routes.find(
+//       (route) => route.uuid === currentRoute.uuid
+//     );
+//   }
+
+//   /**
+//    * Build the secure context options
+//    * - if custom cert are provided load them
+//    * - if not, use default TLS cert (self-signed)
+//    *
+//    * @returns
+//    */
+//   private buildTLSOptions(environment: Environment): SecureContextOptions {
+//     let tlsOptions: SecureContextOptions = {};
+//     const processTemplating = (content: string) =>
+//       TemplateParser({
+//         content,
+//         shouldOmitDataHelper: false,
+//         environment,
+//         processedDatabuckets: this.processedDatabuckets,
+//         globalVariables: this.globalVariables,
+//         envVarsPrefix: this.options.envVarsPrefix,
+//         publicBaseUrl: this.options.publicBaseUrl
+//       });
+
+//     if (
+//       environment.tlsOptions?.pfxPath ||
+//       (environment.tlsOptions?.certPath && environment.tlsOptions?.keyPath)
+//     ) {
+//       if (
+//         environment.tlsOptions?.type === 'PFX' &&
+//         environment.tlsOptions?.pfxPath
+//       ) {
+//         tlsOptions.pfx = readFileSync(
+//           resolvePathFromEnvironment(
+//             processTemplating(environment.tlsOptions?.pfxPath),
+//             this.options.environmentDirectory
+//           )
+//         );
+//       } else if (
+//         environment.tlsOptions?.type === 'CERT' &&
+//         environment.tlsOptions?.certPath &&
+//         environment.tlsOptions?.keyPath
+//       ) {
+//         tlsOptions.cert = readFileSync(
+//           resolvePathFromEnvironment(
+//             processTemplating(environment.tlsOptions?.certPath),
+//             this.options.environmentDirectory
+//           )
+//         );
+//         tlsOptions.key = readFileSync(
+//           resolvePathFromEnvironment(
+//             processTemplating(environment.tlsOptions?.keyPath),
+//             this.options.environmentDirectory
+//           )
+//         );
+//       }
+
+//       if (environment.tlsOptions?.caPath) {
+//         tlsOptions.ca = readFileSync(
+//           resolvePathFromEnvironment(
+//             processTemplating(environment.tlsOptions?.caPath),
+//             this.options.environmentDirectory
+//           )
+//         );
+//       }
+
+//       if (environment.tlsOptions?.passphrase) {
+//         tlsOptions.passphrase = processTemplating(
+//           environment.tlsOptions?.passphrase
+//         );
+//       }
+//     } else {
+//       tlsOptions = { ...DefaultTLSOptions };
+//     }
+
+//     return tlsOptions;
+//   }
+
+//   /**
+//    * Parse all databuckets in the environment and set their parsed value to true except if they contain request helpers
+//    * @param environment
+//    */
+//   private generateDatabuckets(environment: Environment) {
+//     if (environment.data.length > 0) {
+//       environment.data.forEach((databucket) => {
+//         let newProcessedDatabucket: ProcessedDatabucket;
+
+//         if (
+//           new RegExp(
+//             `{{2,3}[#(~\\s\\w ]*((?<![\\w])${requestHelperNames.join('|')})[)} ~]+`
+//           ).exec(databucket.value)
+//         ) {
+//           // a request helper was found
+//           newProcessedDatabucket = {
+//             uuid: databucket.uuid,
+//             id: databucket.id,
+//             name: databucket.name,
+//             value: databucket.value,
+//             parsed: false,
+//             validJson: false
+//           };
+//         } else {
+//           let templateParsedContent;
+
+//           try {
+//             templateParsedContent = TemplateParser({
+//               shouldOmitDataHelper: false,
+//               content: databucket.value,
+//               environment,
+//               processedDatabuckets: this.processedDatabuckets,
+//               globalVariables: this.globalVariables,
+//               envVarsPrefix: this.options.envVarsPrefix,
+//               publicBaseUrl: this.options.publicBaseUrl
+//             });
+
+//             const JSONParsedContent = JSON.parse(templateParsedContent);
+
+//             newProcessedDatabucket = {
+//               uuid: databucket.uuid,
+//               id: databucket.id,
+//               name: databucket.name,
+//               value: JSONParsedContent,
+//               parsed: true,
+//               validJson: true
+//             };
+//           } catch (error: any) {
+//             if (error instanceof SyntaxError) {
+//               newProcessedDatabucket = {
+//                 uuid: databucket.uuid,
+//                 id: databucket.id,
+//                 name: databucket.name,
+//                 value: templateParsedContent,
+//                 parsed: true,
+//                 validJson: false
+//               };
+//             } else {
+//               newProcessedDatabucket = {
+//                 uuid: databucket.uuid,
+//                 id: databucket.id,
+//                 name: databucket.name,
+//                 value: error.message,
+//                 parsed: true,
+//                 validJson: false
+//               };
+//             }
+//           }
+//         }
+//         this.processedDatabuckets.push(newProcessedDatabucket);
+//       });
+
+//       this.emitProcessedDatabuckets();
+//     }
+//   }
+
+//   /**
+//    * Returns list of matched databucket ids in the given text.
+//    *
+//    * @param data text to be searched for possible databucket ids
+//    */
+//   private extractDatabucketIdsFromString(text?: string): string[] {
+//     const matches = text?.matchAll(
+//       new RegExp('data(?:Raw)? +[\'|"]{1}([^(\'|")]*)', 'g')
+//     );
+
+//     return [...(matches ?? [])].map((mtc) => mtc[1]);
+//   }
+
+//   /**
+//    * Find and returns all unique databucket ids specified in callbacks
+//    * of the given response.
+//    * To achieve null safety, this will always return an empty set if no callbacks
+//    * have been defined.
+//    *
+//    * @param response
+//    * @param environment
+//    */
+//   private findDatabucketIdsInCallbacks(
+//     response: RouteResponse,
+//     environment: Environment
+//   ): string[] {
+//     let dataBucketIds: string[] = [];
+
+//     if (response.callbacks && response.callbacks.length > 0) {
+//       for (const invocation of response.callbacks) {
+//         const callback = environment.callbacks.find(
+//           (envCallback) => envCallback.uuid === invocation.uuid
+//         );
+
+//         if (!callback) {
+//           continue;
+//         }
+
+//         dataBucketIds = [
+//           ...dataBucketIds,
+//           ...this.extractDatabucketIdsFromString(callback.uri),
+//           ...this.extractDatabucketIdsFromString(callback.body),
+//           ...this.extractDatabucketIdsFromString(callback.filePath),
+//           ...this.findDatabucketIdsInHeaders(callback.headers)
+//         ];
+
+//         if (callback.databucketID) {
+//           dataBucketIds.push(callback.databucketID);
+//         }
+//       }
+//     }
+
+//     return dataBucketIds;
+//   }
+
+//   /**
+//    * Find data buckets referenced in the provided headers
+//    *
+//    * @param headers
+//    */
+//   private findDatabucketIdsInHeaders(headers: Header[]): string[] {
+//     return headers.reduce<string[]>(
+//       (acc, header) => [
+//         ...acc,
+//         ...this.extractDatabucketIdsFromString(header.value)
+//       ],
+//       []
+//     );
+//   }
+
+//   /**
+//    * Find databucket ids in the rules target and value of the given response
+//    *
+//    * @param response
+//    */
+//   private findDatabucketIdsInRules(response: RouteResponse): string[] {
+//     let dataBucketIds: string[] = [];
+
+//     response.rules.forEach((rule) => {
+//       const splitRules = rule.modifier.split('.');
+//       if (rule.target === 'data_bucket') {
+//         dataBucketIds = [
+//           ...dataBucketIds,
+//           // split by dots, take first section, or second if first is a dollar
+//           splitRules[0].startsWith('$') ? splitRules[1] : splitRules[0],
+//           ...this.extractDatabucketIdsFromString(rule.value)
+//         ];
+//       }
+//     });
+
+//     return dataBucketIds;
+//   }
+
+//   /**
+//    * Generate the databuckets that were not parsed at the server start
+//    *
+//    * @param route
+//    * @param environment
+//    * @param request
+//    */
+//   private generateRequestDatabuckets(
+//     route: Route,
+//     environment: Environment,
+//     request: Request
+//   ) {
+//     // do not continue if all the buckets were previously parsed
+//     if (
+//       !this.processedDatabuckets.some(
+//         (processedDatabucket) => !processedDatabucket.parsed
+//       )
+//     ) {
+//       return;
+//     }
+
+//     let databucketIdsToParse = new Set<string>();
+
+//     // find databucket ids in environment headers
+//     this.findDatabucketIdsInHeaders(environment.headers).forEach(
+//       (dataBucketId) => databucketIdsToParse.add(dataBucketId)
+//     );
+
+//     route.responses.forEach((response) => {
+//       // capture databucket ids in body and relevant callback definitions
+//       [
+//         ...this.findDatabucketIdsInHeaders(response.headers),
+//         ...this.extractDatabucketIdsFromString(response.body),
+//         ...this.extractDatabucketIdsFromString(response.filePath),
+//         ...this.findDatabucketIdsInCallbacks(response, environment),
+//         ...this.findDatabucketIdsInRules(response)
+//       ].forEach((dataBucketId) => databucketIdsToParse.add(dataBucketId));
+
+//       if (response.databucketID) {
+//         databucketIdsToParse.add(response.databucketID);
+//       }
+//     });
+
+//     // capture databucket ids in found databuckets to allow for nested databucket parsing
+//     let nestedDatabucketIds: string[] = [];
+
+//     environment.data.forEach((databucket) => {
+//       if (
+//         databucketIdsToParse.has(databucket.id) ||
+//         [...databucketIdsToParse.keys()].some((id) =>
+//           databucket.name.toLowerCase().includes(id.toLowerCase())
+//         )
+//       ) {
+//         nestedDatabucketIds = [
+//           ...this.extractDatabucketIdsFromString(databucket.value)
+//         ];
+//       }
+//     });
+
+//     // add nested databucket ids at the beginning of the set to ensure they are parsed first
+//     databucketIdsToParse = new Set([
+//       ...nestedDatabucketIds,
+//       ...databucketIdsToParse
+//     ]);
+
+//     if (databucketIdsToParse.size > 0) {
+//       let targetDatabucket: ProcessedDatabucket | undefined;
+
+//       for (const databucketIdToParse of databucketIdsToParse) {
+//         targetDatabucket = this.processedDatabuckets.find(
+//           (databucket) =>
+//             databucket.id === databucketIdToParse ||
+//             databucket.name
+//               .toLowerCase()
+//               .includes(databucketIdToParse.toLowerCase())
+//         );
+
+//         if (targetDatabucket && !targetDatabucket?.parsed) {
+//           let content = targetDatabucket.value;
+
+//           try {
+//             content = TemplateParser({
+//               shouldOmitDataHelper: false,
+//               content: targetDatabucket.value,
+//               environment,
+//               processedDatabuckets: this.processedDatabuckets,
+//               globalVariables: this.globalVariables,
+//               request: fromExpressRequest(request),
+//               envVarsPrefix: this.options.envVarsPrefix,
+//               publicBaseUrl: this.options.publicBaseUrl
+//             });
+
+//             const JSONParsedcontent = JSON.parse(content);
+
+//             targetDatabucket.value = JSONParsedcontent;
+//             targetDatabucket.parsed = true;
+//             targetDatabucket.validJson = true;
+//           } catch (error: any) {
+//             if (error instanceof SyntaxError) {
+//               targetDatabucket.value = content;
+//             } else {
+//               targetDatabucket.value = error.message;
+//             }
+
+//             targetDatabucket.parsed = true;
+//             targetDatabucket.validJson = false;
+//           }
+//         }
+//       }
+
+//       this.emitProcessedDatabuckets();
+//     }
+//   }
+
+//   /**
+//    * Emit an event with the processed databuckets.
+//    * Remove the value from the processed databuckets to avoid sending
+//    * too much data to the client.
+//    */
+//   private emitProcessedDatabuckets() {
+//     this.emit(
+//       'data-bucket-processed',
+//       // remove the value from the processed databuckets to avoid sending it to the client
+//       this.processedDatabuckets.map(({ value: _value, ...props }) => ({
+//         ...props
+//       }))
+//     );
+//   }
+
+//   /**
+//    * Set response properties from the locals object.
+//    * Currently supports the statusCode that can be set using templating helper.
+//    *
+//    * @param response
+//    */
+//   private applyResponseLocals(response: Response) {
+//     if (
+//       response.locals.statusCode !== undefined &&
+//       isValidStatusCode(response.locals.statusCode)
+//     ) {
+//       response.status(response.locals.statusCode);
+//     }
+//   }
+
+//   /**
+//    * Parse file paths and prevent path traversal
+//    *
+//    * If the path is absolute, it must stay within its original static base
+//    * (before the first {{...}})
+//    * If the path is relative, it must stay within the environment base directory
+//    *
+//    * @param filePath
+//    * @param request
+//    * @returns
+//    */
+//   private getSafeFilePath(filePath: string, request?: ServerRequest) {
+//     const resolvePath = (path: string) => {
+//       const isPathAbsolute = isAbsolute(path);
+
+//       return isPathAbsolute
+//         ? resolve(path)
+//         : resolve(this.options.environmentDirectory, path);
+//     };
+//     // Convert backslashes to forward slashes (Windows compatibility)
+//     const rawFilePath = filePath.replace(/\\(?!\.)/g, '/');
+
+//     // Check if there is any templating helper in the file path
+//     const hasTemplatingHelper = /{{2,3}[^}]+}{2,3}/.test(rawFilePath);
+
+//     if (!hasTemplatingHelper) {
+//       // If no templating helper, allow unrestricted access
+//       return resolvePath(rawFilePath);
+//     }
+
+//     // Extract static base from templated string (before first {{...}})
+//     const staticBaseMatch = rawFilePath.match(/^([^{}]+)/);
+//     const staticBaseDir = staticBaseMatch ? resolve(staticBaseMatch[1]) : null;
+
+//     const parsedFilePath = TemplateParser({
+//       shouldOmitDataHelper: false,
+//       content: rawFilePath,
+//       environment: this.environment,
+//       processedDatabuckets: this.processedDatabuckets,
+//       globalVariables: this.globalVariables,
+//       request,
+//       envVarsPrefix: this.options.envVarsPrefix,
+//       publicBaseUrl: this.options.publicBaseUrl
+//     });
+
+//     // Determine if the path is absolute or relative
+//     const isPathAbsolute = isAbsolute(parsedFilePath);
+//     const resolvedPath = resolvePath(parsedFilePath);
+
+//     if (isPathAbsolute) {
+//       // Absolute paths must stay within their original static base
+//       if (!staticBaseDir || !resolvedPath.startsWith(staticBaseDir)) {
+//         throw new Error(
+//           `Access to absolute path outside of the original static base directory (${resolvedPath})`
+//         );
+//       }
+//     } else {
+//       // Relative paths must stay within the environment base directory
+//       if (!resolvedPath.startsWith(this.options.environmentDirectory)) {
+//         throw new Error(
+//           `Access to relative path outside of the environment base directory (${resolvedPath})`
+//         );
+//       }
+//     }
+
+//     return resolvedPath;
+//   }
+}

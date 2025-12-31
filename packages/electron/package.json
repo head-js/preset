@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "electron-log": "5.2.4",
+    "killable": "1.0.1",
     "koa": "2.16.3",
     "koa-router": "11.0.2"
   },
@@ -22,9 +23,12 @@
     "@electron-forge/maker-zip": "7.3.1",
     "@electron-forge/plugin-base": "7.3.1",
     "@electron-forge/plugin-webpack": "7.3.1",
+    "@types/koa": "2.15.0",
+    "@types/koa-router": "7.4.8",
     "babel-loader": "8.2.4",
     "electron": "24.8.8",
     "ts-loader": "9.4.4",
+    "typed-emitter": "2.1.0",
     "typescript": "5.7.3",
     "webpack": "5.88.2",
     "webpack-cli": "5.1.4"

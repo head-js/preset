@@ -12,6 +12,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "noImplicitAny": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
@@ -25,7 +26,6 @@
     ".webpack",
     "out",
     "src/dist-renderer",
-    "src/mockoon",
     "plugins"
   ]
 }

@@ -1,11 +1,14 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
+const path = require('path');
 const log = require('electron-log');
+const { ServerInstance } = require('./mockoon/server-management');
 
 // Configure electron-log
 log.transports.file.level = 'info';
 log.transports.console.level = 'debug';
 
 let mainWindow;
+const getMainWindow = () => mainWindow;
 
 log.info('Main process started', {
   nodeEnv: process.env.NODE_ENV,
@@ -70,6 +73,8 @@ app.whenReady().then(() => {
   log.info('App is ready, creating window');
   // Koa server is already started by requiring it above
   createWindow();
+
+  new ServerInstance({ uuid: 'uuid', port: 9090, hostname: '127.0.0.1' }, { getMainWindow });
 
   app.on('activate', () => {
     log.debug('App activated');

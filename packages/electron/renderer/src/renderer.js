@@ -10,7 +10,10 @@ export default function Renderer() {
 
   // 2. 使用 onMessage() 方法监听主进程发送的消息
   window.preload.onMessage((message) => {
-    console.log('收到主进程消息:', message);
+    console.log('[renderer] 收到主进程消息:', message);
+  });
+  window.preload.fromMainToRenderer((payload) => {
+    console.log('[renderer] from-main.to-renderer:', payload);
   });
   console.log('已注册消息监听器');
 }

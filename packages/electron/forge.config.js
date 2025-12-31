@@ -1,5 +1,6 @@
 const { WebpackPlugin } = require('@electron-forge/plugin-webpack');
 const mainConfig = require('./webpack.main.config');
+const rendererConfig = require('./webpack.renderer.config');
 const path = require('path');
 const OverwriteRendererPlugin = require('./plugins/forge-plugin-overwrite-renderer');
 
@@ -19,13 +20,13 @@ module.exports = {
     new WebpackPlugin({
       mainConfig,
       renderer: {
-        config: {},
+        config: rendererConfig,
         entryPoints: [{
           name: 'main_window',
           html: path.join(__dirname, 'src', 'renderer.html'),
           js: path.join(__dirname, 'src', 'renderer.js'),
           preload: {
-            js: './src/preload.js'
+            js: './src/preload.ts'
           }
         }],
       },

@@ -15,7 +15,24 @@ const mainConfig = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx|ts|tsx)$/,
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: 'babel-loader',
+          },
+          {
+            loader: 'ts-loader',
+            options: {
+              compilerOptions: {
+                noEmit: false
+              }
+            }
+          }
+        ],
+      },
+      {
+        test: /\.jsx?$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',

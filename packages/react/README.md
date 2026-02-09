@@ -1,7 +1,10 @@
 @head/preset-react
 ==
 
-react@18.2.0 [2022-06-14](https://github.com/facebook/react/releases)
+react@18.3.1 [2024-04-26](https://github.com/facebook/react/blob/main/CHANGELOG.md)
+--
+
+react-router@6.21.3 [2024-01-18](https://github.com/remix-run/react-router/blob/main/CHANGELOG.md)
 --
 
 babel@7.18.10 [2022-08-01](https://github.com/babel/babel/releases?page=8)
